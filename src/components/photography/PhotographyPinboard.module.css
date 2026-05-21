@@ -1,0 +1,373 @@
+.frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.frame:active {
+  cursor: grabbing;
+}
+
+.world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+}
+
+.boardBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-size: 300px 300px;
+}
+
+.stringSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.card {
+  position: absolute;
+  padding: 7px 7px 20px;
+  cursor: pointer;
+  will-change: transform;
+  border: none;
+  text-align: left;
+}
+
+.pin {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  box-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.cardImg {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.cardImgSvg {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+}
+
+.cardName {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  display: block;
+  margin-top: 7px;
+  line-height: 1.2;
+}
+
+.cardSub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  display: block;
+  margin-top: 2px;
+}
+
+.clusterLabel {
+  position: absolute;
+  pointer-events: none;
+}
+
+.clInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+.clDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.clName {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clCount {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.hud {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border-radius: 20px;
+  padding: 5px 14px;
+  z-index: 20;
+}
+
+.hud span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.regionNav {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 168px;
+  z-index: 20;
+}
+
+.rnHeader {
+  padding: 8px 12px 6px;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.rnHeader span {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.rnItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.rnItem:not(:last-child) {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+}
+
+.rnPip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rnName {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.rnProgress {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rnFrac {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.rnBarWrap {
+  width: 28px;
+  height: 3px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.rnBarFill {
+  height: 100%;
+  border-radius: 2px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 7, 3, 0.82);
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlayOpen {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.slideshow {
+  width: 320px;
+  position: relative;
+}
+
+.ssImgWrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.ssImg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.ssPrev,
+.ssNext {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(10, 7, 3, 0.5);
+  border: none;
+  color: #f1efe8;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.ssPrev {
+  left: 0;
+}
+
+.ssNext {
+  right: 0;
+}
+
+.ssPrev:hover,
+.ssNext:hover {
+  background: rgba(10, 7, 3, 0.85);
+}
+
+.ssPrev svg,
+.ssNext svg {
+  width: 15px;
+  height: 15px;
+  stroke: #f1efe8;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ssDots {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  padding: 9px 0 0;
+}
+
+.ssDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: none;
+  padding: 0;
+}
+
+.ssBody {
+  padding: 13px 15px 15px;
+}
+
+.ssCountry {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ssRegionLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  margin-top: 3px;
+  display: block;
+  letter-spacing: 0.05em;
+}
+
+.ssCaption {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-top: 8px;
+  display: block;
+  min-height: 16px;
+}
+
+.ssCounter {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  float: right;
+  margin-top: -18px;
+}
+
+.ssClose {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  background: rgba(10, 7, 3, 0.5);
+  border: none;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  z-index: 3;
+}
+
+.ssClose:hover {
+  background: rgba(10, 7, 3, 0.85);
+}
+
+.ssClose svg {
+  width: 13px;
+  height: 13px;
+  stroke: #f1efe8;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+}
