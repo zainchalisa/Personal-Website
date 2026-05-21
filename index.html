@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Zain — software engineer in NYC. Projects and photography."
+    />
+    <title>zain.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;700&family=Geist:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        var path = (location.pathname || '').replace(/\/+$/, '') || '/'
+        if (path.toLowerCase() === '/photon') {
+          var icon = document.querySelector('link[rel="icon"]')
+          if (!icon) {
+            icon = document.createElement('link')
+            icon.rel = 'icon'
+            document.head.appendChild(icon)
+          }
+          icon.type = 'image/png'
+          icon.setAttribute('sizes', '128x128')
+          icon.href = '/photon-icon-128.png'
+        }
+      })()
+    </script>
+    <script>
+      (function () {
+        try {
+          var k = 'theme'
+          var t = localStorage.getItem(k)
+          var d =
+            t === 'light' || t === 'dark'
+              ? t
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          document.documentElement.dataset.theme = d
+          document.documentElement.style.colorScheme = d
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
