@@ -69,7 +69,7 @@ type SearchDemo = {
 
 const SEARCH_DEMOS: SearchDemo[] = [
   {
-    query: "that chaotic family trip to england and scotland",
+    query: "family trip to england and scotland in 2023",
     count: ENGLAND_TRIP_IMAGES.length,
     images: ENGLAND_TRIP_IMAGES,
   },
@@ -79,17 +79,17 @@ const SEARCH_DEMOS: SearchDemo[] = [
     images: REDWOOD_FOREST_IMAGES,
   },
   {
-    query: 'cute photo of mom and dad in 2008 at barbeque',
+    query: 'photo of mom and dad in 2008 at sarah\'s barbeque',
     count: MOM_DAD_IMAGES.length,
     images: MOM_DAD_IMAGES,
   },
   {
-    query: 'every sunset we pulled over for on the california road trip in 2025',
+    query: 'sunsets I pulled over for on the pch road trip in 2025',
     count: CALIFORNIA_SUNSET_IMAGES.length,
     images: CALIFORNIA_SUNSET_IMAGES,
   },
   {
-    query: 'zain and arwa sitting next to each other when they were little',
+    query: 'zain and arwa when they were little',
     count: BABY_PHOTOS_IMAGES.length,
     images: BABY_PHOTOS_IMAGES,
   },
