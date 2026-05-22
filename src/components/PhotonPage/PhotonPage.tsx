@@ -94,7 +94,7 @@ export default function PhotonPage() {
             </button>
           </form>
           <p className={styles.disclaimer}>
-            Your photos never leave your Mac. No account, no cloud, free forever.
+            Your photos never leave your Mac. All local, private, & free.
           </p>
         </div>
       </div>
