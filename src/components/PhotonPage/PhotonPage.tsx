@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import photonLogo from '../../assets/photon-logo.png'
+import photonLogo from '../../assets/photon/logo-light.png'
 
-const PHOTON_FAVICON = '/photon-icon-128.png'
+const PHOTON_FAVICON = '/photon/favicon-128.png'
 import PhotonPreviewDemo from './PhotonPreviewDemo'
 import styles from './PhotonPage.module.css'
 
@@ -23,7 +23,7 @@ export default function PhotonPage() {
       iconLink.href = PHOTON_FAVICON
     }
 
-    document.title = 'photon — find your photos, not filenames'
+    document.title = 'photon.'
     const meta = document.querySelector('meta[name="description"]')
     if (meta) {
       meta.setAttribute(
@@ -65,14 +65,15 @@ export default function PhotonPage() {
         </header>
 
         <h1 className={styles.headline}>
-          find your photos,
-          <br />
-          not filenames.
+          <span className={styles.headlineLine}>
+            your <span className={styles.headlineAccent}>memories,</span>
+          </span>
+          <span className={styles.headlineLine}>instantly searchable.</span>
         </h1>
         <p className={styles.lead}>
-          No folders. No dates. No guessing.
-          <br />
-          Just describe it the way you remember it.
+        A moment. A face. A place. 
+        <br/>
+        Photon finds it in your library in seconds.
         </p>
         <div className={styles.ctaBlock}>
           <form

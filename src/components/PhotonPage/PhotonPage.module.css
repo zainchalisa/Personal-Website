@@ -64,19 +64,42 @@
   font-size: clamp(2.5rem, 8vw, 4rem);
   font-weight: 700;
   letter-spacing: -0.04em;
-  line-height: 1.05;
+  line-height: 1.08;
   color: #111;
   margin: 0 auto 1.5rem;
-  max-width: min(100%, 18em);
+  max-width: min(100%, 14em);
+  text-wrap: balance;
+}
+
+.headlineLine {
+  display: block;
+}
+
+/* PhotonColors.accent light mode — #4A6B8A */
+.headlineAccent {
+  color: #4a6b8a;
 }
 
 .lead {
   font-size: clamp(0.9375rem, 2vw, 1.125rem);
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.65;
   color: #7a8a9a;
-  max-width: min(100%, 30rem);
+  max-width: min(100%, 26rem);
   margin: 0 auto 0.5rem;
+  text-wrap: pretty;
+}
+
+.leadLine {
+  display: block;
+}
+
+.leadLine + .leadLine {
+  margin-top: 0.2em;
+}
+
+.leadLine:last-child {
+  margin-top: 0.65em;
 }
 
 .ctaBlock {
@@ -383,6 +406,12 @@
   aspect-ratio: 1;
   border-radius: 0.5rem;
   will-change: transform, opacity;
+}
+
+.thumbPhoto {
+  height: auto;
+  object-fit: cover;
+  object-position: center;
 }
 
 .thumbEnter {

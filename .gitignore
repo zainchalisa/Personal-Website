@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Photon LP — full-size originals stay local; repo tracks web/ optimized assets only
+src/assets/photon/baby_photos/**
+!src/assets/photon/baby_photos/web/
+
+src/assets/photon/california sunsets/**
+!src/assets/photon/california sunsets/web/
+
+src/assets/photon/family trip to england/**
+!src/assets/photon/family trip to england/web/
+
+src/assets/photon/mom&dad/**
+!src/assets/photon/mom&dad/web/
+
+src/assets/photon/redwood forest/**
+!src/assets/photon/redwood forest/web/

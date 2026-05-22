@@ -1,13 +1,99 @@
 import { useEffect, useState } from 'react'
+import babyImg5964 from '../../assets/photon/baby_photos/web/IMG_5964.jpg'
+import babyImg8908 from '../../assets/photon/baby_photos/web/IMG_8908.jpg'
+import babyImg8909 from '../../assets/photon/baby_photos/web/IMG_8909.jpg'
+import babyImg8911 from '../../assets/photon/baby_photos/web/IMG_8911.jpg'
+import englandImg0294 from '../../assets/photon/family trip to england/web/IMG_0294.jpg'
+import englandImg1607 from '../../assets/photon/family trip to england/web/IMG_1607.jpg'
+import englandImg8942 from '../../assets/photon/family trip to england/web/IMG_8942.jpg'
+import englandImg8080 from '../../assets/photon/family trip to england/web/IMG_8080.jpg'
+import englandImg8860 from '../../assets/photon/family trip to england/web/IMG_8860.jpg'
+import sunsetImg7180 from '../../assets/photon/california sunsets/web/IMG_7180.jpg'
+import sunsetImg7293 from '../../assets/photon/california sunsets/web/IMG_7293.jpg'
+import sunsetImg7560 from '../../assets/photon/california sunsets/web/IMG_7560.jpg'
+import sunsetImg8470 from '../../assets/photon/california sunsets/web/IMG_8470-2.jpg'
+import sunsetImg8525 from '../../assets/photon/california sunsets/web/IMG_8525-Enhanced-NR.jpg'
+import momDadImg8840 from '../../assets/photon/mom&dad/web/IMG_8840_crop.jpg'
+import redwoodImg6664 from '../../assets/photon/redwood forest/web/IMG_6664.jpg'
+import redwoodImg6698 from '../../assets/photon/redwood forest/web/IMG_6698.jpg'
+import redwoodImg6712 from '../../assets/photon/redwood forest/web/IMG_6712.jpg'
+import redwoodImg6731 from '../../assets/photon/redwood forest/web/IMG_6731-2.jpg'
 import styles from './PhotonPage.module.css'
 
-const SEARCH_DEMOS = [
-  { query: 'Zain in 2005', count: 4 },
-  { query: 'that sunset by the Golden Gate Bridge', count: 6 },
-  { query: "mom's birthday", count: 1 },
-  { query: 'snowboarding in Vermont', count: 5 },
-  { query: 'Arwa\'s wedding photos on the dance floor', count: 3 },
+const BABY_PHOTOS_IMAGES = [
+  babyImg8909,
+  babyImg8908,
+  babyImg8911,
+  babyImg5964,
 ] as const
+
+const ENGLAND_TRIP_IMAGES = [
+  englandImg8080,
+  englandImg0294,
+  englandImg1607,
+  englandImg8942,
+  englandImg8860,
+] as const
+
+const CALIFORNIA_SUNSET_IMAGES = [
+  sunsetImg7560,
+  sunsetImg7180,
+  sunsetImg7293,
+  sunsetImg8470,
+  sunsetImg8525,
+] as const
+
+const MOM_DAD_IMAGES = [momDadImg8840] as const
+
+const REDWOOD_FOREST_IMAGES = [
+  redwoodImg6698,
+  redwoodImg6712,
+  redwoodImg6664,
+  redwoodImg6731,
+] as const
+
+const DEMO_IMAGES_TO_PRELOAD = [
+  ...REDWOOD_FOREST_IMAGES,
+  ...MOM_DAD_IMAGES,
+  ...CALIFORNIA_SUNSET_IMAGES,
+  ...ENGLAND_TRIP_IMAGES,
+  ...BABY_PHOTOS_IMAGES,
+] as const
+
+type SearchDemo = {
+  query: string
+  count: number
+  images?: readonly string[]
+  imagePositions?: readonly string[]
+}
+
+const SEARCH_DEMOS: SearchDemo[] = [
+  {
+    query: "that chaotic family trip to england and scotland",
+    count: ENGLAND_TRIP_IMAGES.length,
+    images: ENGLAND_TRIP_IMAGES,
+  },
+  {
+    query: 'drive through the redwood forest in california',
+    count: REDWOOD_FOREST_IMAGES.length,
+    images: REDWOOD_FOREST_IMAGES,
+  },
+  {
+    query: 'cute photo of mom and dad in 2008 at barbeque',
+    count: MOM_DAD_IMAGES.length,
+    images: MOM_DAD_IMAGES,
+  },
+  {
+    query: 'every sunset we pulled over for on the california road trip in 2025',
+    count: CALIFORNIA_SUNSET_IMAGES.length,
+    images: CALIFORNIA_SUNSET_IMAGES,
+  },
+  {
+    query: 'zain and arwa sitting next to each other when they were little',
+    count: BABY_PHOTOS_IMAGES.length,
+    images: BABY_PHOTOS_IMAGES,
+  },
+]
 
 const THUMB_GRADIENTS = [
   'linear-gradient(145deg, #2e2a24 0%, #3a342c 100%)',
@@ -29,6 +115,20 @@ const HOLD_MS = 4200
 const FADE_MS = 450
 const RESULTS_DELAY_MS = 500
 
+function preloadImages(urls: readonly string[]): Promise<void> {
+  return Promise.all(
+    urls.map(
+      (src) =>
+        new Promise<void>((resolve) => {
+          const img = new Image()
+          img.onload = () => resolve()
+          img.onerror = () => resolve()
+          img.src = src
+        }),
+    ),
+  ).then(() => undefined)
+}
+
 export default function PhotonPreviewDemo() {
   const [typed, setTyped] = useState('')
   const [resultCount, setResultCount] = useState(0)
@@ -36,6 +136,14 @@ export default function PhotonPreviewDemo() {
   const [fading, setFading] = useState(false)
   const [isBackspacing, setIsBackspacing] = useState(false)
   const [resultsGeneration, setResultsGeneration] = useState(0)
+  const [activeDemoIndex, setActiveDemoIndex] = useState(0)
+
+  useEffect(() => {
+    DEMO_IMAGES_TO_PRELOAD.forEach((src) => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -84,24 +192,40 @@ export default function PhotonPreviewDemo() {
       const demo = SEARCH_DEMOS[demoIndex]
       setFading(false)
 
+      demo.images?.forEach((src) => {
+        const img = new Image()
+        img.src = src
+      })
+
       typeQuery(demo.query, () => {
         schedule(() => {
-          setResultCount(demo.count)
-          setResultsGeneration((g) => g + 1)
-          setShowResults(true)
-        }, RESULTS_DELAY_MS)
+          const revealResults = () => {
+            setActiveDemoIndex(demoIndex)
+            setResultCount(demo.count)
+            setResultsGeneration((g) => g + 1)
+            setShowResults(true)
 
-        schedule(() => {
-          backspaceQuery(demo.query, () => {
-            setFading(true)
             schedule(() => {
-              setShowResults(false)
-              setResultCount(0)
-              setFading(false)
-              runDemo((demoIndex + 1) % SEARCH_DEMOS.length)
-            }, FADE_MS)
-          })
-        }, RESULTS_DELAY_MS + HOLD_MS)
+              backspaceQuery(demo.query, () => {
+                setFading(true)
+                schedule(() => {
+                  setShowResults(false)
+                  setResultCount(0)
+                  setFading(false)
+                  runDemo((demoIndex + 1) % SEARCH_DEMOS.length)
+                }, FADE_MS)
+              })
+            }, HOLD_MS)
+          }
+
+          if (demo.images?.length) {
+            void preloadImages(demo.images).then(() => {
+              if (!cancelled) revealResults()
+            })
+          } else {
+            revealResults()
+          }
+        }, RESULTS_DELAY_MS)
       })
     }
 
@@ -194,12 +318,36 @@ export default function PhotonPreviewDemo() {
           <div className={styles.grid}>
             {Array.from({ length: 6 }, (_, i) => {
               const visible = showResults && i < resultCount
+              const demo = SEARCH_DEMOS[activeDemoIndex]
+              const photoSrc = visible ? demo.images?.[i] : undefined
+              const key = visible ? `r${resultsGeneration}-${i}` : `slot-${i}`
+
+              if (photoSrc && visible) {
+                return (
+                  <img
+                    key={key}
+                    src={photoSrc}
+                    alt=""
+                    draggable={false}
+                    decoding="async"
+                    className={`${styles.thumb} ${styles.thumbPhoto} ${styles.thumbEnter}`}
+                    style={{
+                      animationDelay: `${i * 60}ms`,
+                      ...(demo.imagePositions?.[i]
+                        ? { objectPosition: demo.imagePositions[i] }
+                        : {}),
+                    }}
+                  />
+                )
+              }
+
               return (
                 <span
-                  key={visible ? `r${resultsGeneration}-${i}` : `slot-${i}`}
+                  key={key}
                   className={`${styles.thumb} ${visible ? styles.thumbEnter : styles.thumbHidden}`}
                   style={{
-                    background: THUMB_GRADIENTS[i % THUMB_GRADIENTS.length],
+                    background:
+                      THUMB_GRADIENTS[i % THUMB_GRADIENTS.length],
                     animationDelay: visible ? `${i * 60}ms` : undefined,
                   }}
                 />
