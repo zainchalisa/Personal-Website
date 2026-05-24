@@ -1,13 +1,14 @@
+import './app-shell.css'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
-import lanternOff from './assets/Lantern Off.png'
-import lanternOn from './assets/Lantern On.png'
-import lanternPlaceSfx from './assets/Lantern Placing (Nr. 1 _ Minecraft Sound) - Sound Effect for editing.mp3'
-import { AboutPage } from './components/about/AboutPage'
-import { ProjectsGame, type ShowcaseProject } from './components/ProjectsGame/ProjectsGame'
+import lanternOff from './assets/images/Lantern Off.png'
+import lanternOn from './assets/images/Lantern On.png'
+import lanternPlaceSfx from './assets/images/Lantern Placing (Nr. 1 _ Minecraft Sound) - Sound Effect for editing.mp3'
+import { AboutPage } from './pages/about'
+import { ProjectsGame, type ShowcaseProject } from './pages/projects'
 import type { PageId } from './types'
-import { useTheme } from './useTheme'
+import { useTheme } from './hooks/useTheme'
 
-const PhotographyPage = lazy(() => import('./components/PhotographyPage'))
+const PhotographyPage = lazy(() => import('./pages/photography'))
 
 const NAV: { id: PageId; label: string }[] = [
   { id: 'about', label: 'about' },

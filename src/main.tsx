@@ -6,9 +6,9 @@ import '@fontsource/geist-sans/500.css'
 import '@fontsource/geist-sans/600.css'
 import './index.css'
 import App from './App.tsx'
-import { ThemeProvider } from './useTheme'
+import { ThemeProvider } from './hooks/useTheme'
 
-const PhotonPage = lazy(() => import('./components/PhotonPage/PhotonPage'))
+const PhotonPage = lazy(() => import('./pages/photon'))
 
 function normalizePath(pathname: string) {
   const path = pathname.replace(/\/+$/, '') || '/'

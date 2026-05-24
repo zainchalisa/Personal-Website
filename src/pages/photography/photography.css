@@ -1,0 +1,354 @@
+.photography-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background: transparent;
+  color: var(--photo-text);
+}
+
+.photography-page[data-theme='dark'],
+:root[data-theme='dark'] .photography-page {
+  --photo-accent: #d4894a;
+  --photo-surface: #1e1a14;
+  --photo-surface-elevated: #161412;
+  --photo-text: #f5f2ec;
+  --photo-text-muted: #9a948a;
+  --photo-border: rgba(255, 255, 255, 0.08);
+  --photo-toolbar-fade: rgba(12, 11, 10, 0.75);
+  --photo-hint-bg: rgba(12, 11, 10, 0.75);
+  --photo-lightbox-bg: rgba(8, 7, 6, 0.96);
+}
+
+.photography-page[data-theme='light'],
+:root[data-theme='light'] .photography-page {
+  --photo-accent: #b86828;
+  --photo-surface: #c9b99a;
+  --photo-surface-elevated: #faf8f4;
+  --photo-text: #1f1c18;
+  --photo-text-muted: #5c574f;
+  --photo-border: rgba(0, 0, 0, 0.1);
+  --photo-toolbar-fade: rgba(232, 226, 214, 0.85);
+  --photo-hint-bg: rgba(250, 248, 244, 0.88);
+  --photo-lightbox-bg: rgba(250, 248, 244, 0.97);
+}
+
+.photography-stage {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.photography-toolbar {
+  background: linear-gradient(180deg, var(--photo-toolbar-fade) 0%, transparent 100%);
+}
+
+/* Region view: keep back link readable without hiding the 3D tape label */
+.photography-toolbar--region {
+  background: transparent;
+}
+
+.photography-region-tag--focus {
+  max-width: min(92vw, 20rem);
+  text-align: center;
+}
+
+
+.photography-region-tag {
+  margin: 0;
+  padding: 0.55rem 1.1rem 0.5rem;
+  font-family: var(--font-sans);
+  font-size: clamp(1.125rem, 0.9rem + 0.65vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: var(--photo-text);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--photo-surface-elevated) 92%, #ebe4cc) 0%,
+    color-mix(in srgb, var(--photo-surface-elevated) 88%, #e0d8bc) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--photo-accent) 22%, var(--photo-border));
+  border-radius: 4px;
+  box-shadow:
+    2px 3px 0 rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transform: rotate(-1.25deg);
+}
+
+.photography-pinboard-host {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Pinboard board canvas uses intrinsic 2600×1400; light overlay fills the frame */
+
+.photography-kicker {
+  margin-bottom: 0.35rem;
+  color: var(--photo-text-muted);
+}
+
+.photography-title {
+  font-size: clamp(1.35rem, 1rem + 1.2vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--photo-text);
+  text-transform: capitalize;
+}
+
+.photography-meta {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--photo-text-muted);
+  text-transform: lowercase;
+}
+
+.photography-reset,
+.photography-back {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--photo-text-muted);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.photography-reset:hover,
+.photography-back:hover {
+  color: var(--photo-text);
+}
+
+.photography-region-chip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--photo-text);
+  background: rgba(12, 11, 10, 0.72);
+  backdrop-filter: blur(10px);
+  border: 0.5px solid var(--photo-border);
+  border-radius: var(--border-radius-md);
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.photography-region-chip:hover,
+.photography-region-chip--active {
+  background: rgba(22, 20, 18, 0.92);
+  border-color: color-mix(in srgb, var(--photo-accent) 45%, transparent);
+  transform: translate(-50%, -50%) scale(1.03);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.photography-page--region .photography-region-chip {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.photography-loading,
+.photography-hint {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--photo-text-muted);
+}
+
+.photography-hint {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: var(--photo-hint-bg);
+  border: 0.5px solid var(--photo-border);
+  backdrop-filter: blur(8px);
+}
+
+.photography-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.5rem 2rem;
+  background: var(--photo-lightbox-bg);
+  backdrop-filter: blur(12px);
+  transform: scale(0.985);
+  opacity: 0;
+  transition:
+    transform 0.22s ease-out,
+    opacity 0.22s ease-out;
+}
+
+.photography-lightbox--open {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.photography-lightbox-header {
+  display: flex;
+  shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.photography-lightbox-region {
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--photo-text-muted);
+  border-left: 2px solid var(--photo-accent);
+  padding-left: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.photography-lightbox-country {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.65rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--photo-text);
+}
+
+.photography-lightbox-count {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--photo-text-muted);
+}
+
+.photography-lightbox-body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.photography-lightbox-frame {
+  width: 100%;
+  max-width: 42rem;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 0.5px solid var(--photo-border);
+  background: var(--photo-surface-elevated);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(196, 120, 58, 0.08);
+  transition: opacity 0.22s ease;
+}
+
+.photography-lightbox-placeholder {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--photo-text-muted);
+  background: linear-gradient(145deg, #1e1c19 0%, #121110 100%);
+}
+
+.photography-lightbox-placeholder-city {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--photo-text);
+}
+
+.photography-lightbox-placeholder-note {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.photography-lightbox-city {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--photo-text);
+}
+
+.photography-lightbox-meta {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--photo-text-muted);
+}
+
+.photography-lightbox-footer {
+  display: flex;
+  shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.photography-lightbox-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.photography-lightbox-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--photo-border);
+  transition: background 0.15s ease;
+}
+
+.photography-lightbox-dot--active {
+  background: var(--photo-accent);
+}
+
+.photography-dialog-btn {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--border-radius-md);
+  border: 0.5px solid var(--photo-border);
+  background: var(--photo-surface-elevated);
+  color: var(--photo-text);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.photography-dialog-btn:hover:not(:disabled) {
+  background: #221f1c;
+  border-color: color-mix(in srgb, var(--photo-accent) 35%, transparent);
+}
+
+.photography-dialog-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (min-width: 40rem) {
+  .photography-lightbox {
+    padding: 1.5rem 2rem 2rem;
+  }
+}
+
