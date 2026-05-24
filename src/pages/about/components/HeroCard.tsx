@@ -74,12 +74,6 @@ export function HeroCard({ theme }: HeroCardProps) {
         <div className={styles.portraitWrap} aria-hidden="true">
           <div className={styles.portraitGlowLayer}>
             <img
-              className={styles.portraitGlowSoft}
-              src={zainPortrait}
-              alt=""
-              decoding="async"
-            />
-            <img
               className={styles.portraitGlow}
               src={zainPortrait}
               alt=""
