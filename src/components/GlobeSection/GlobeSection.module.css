@@ -90,7 +90,7 @@
   width: 50%;
   padding: 1.25rem 1.1rem;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .statBlock {

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Theme } from '../../useTheme'
+import { useTheme } from '../../useTheme'
+import { getLavaGlowBoost } from '../../themeTransition'
 import jumpFrame1Url from '../../assets/jump.png'
 import jumpFrame2Url from '../../assets/jump 2.png'
 import runFrame1Url from '../../assets/run.png'
@@ -197,7 +199,28 @@ type GameProject = {
 }
 
 type Plat = { x: number; y: number; w: number; h: number; ground?: boolean }
-type Portal = { x: number; y: number; w: number; h: number; proj: GameProject; active: boolean }
+type Portal = {
+  x: number
+  y: number
+  w: number
+  h: number
+  proj: GameProject
+  active: boolean
+  proximity: number
+}
+
+type LavaEmber = {
+  x: number
+  y: number
+  vy: number
+  wobblePhase: number
+  wobbleFreq: number
+  wobbleAmp: number
+  age: number
+  maxLife: number
+  size: number
+  breezeVx: number
+}
 
 type PlatformDecoration = {
   platIndex: number
@@ -247,8 +270,10 @@ function getPlatformDecorations(): Promise<PlatformDecoration[]> {
 }
 
 const WORLD_W = 1980
-/** World Y of the lava collision floor (lower = deeper pit below platforms) */
-const GROUND_Y = 648
+/** Default world Y of the lava collision floor; raised toward H at runtime */
+const GROUND_Y_DEFAULT = 648
+/** Distance from canvas bottom to the lava floor line */
+const LAVA_BOTTOM_INSET = 72
 const GROUND_H = 10
 const FLOOR_TILE_SCALE = 1.15
 /** Where the wave crest sits within tile 53 (from top of sprite) */
@@ -259,6 +284,11 @@ const FLOOR_WAVE_POP_ABOVE = 14
 const LAVA_FILL_FLOW_X = 0.22
 /** Gentle vertical motion applied to the whole surface layer (not per-tile) */
 const LAVA_SURFACE_BOB = 2
+const EMBER_MAX = 48
+const EMBER_SPAWN_EVERY = 4
+/** Pixels above the wave crest where embers first appear */
+const EMBER_SPAWN_LIFT_MIN = 8
+const EMBER_SPAWN_LIFT_RANGE = 14
 /** Overlap adjacent tiles by 1px to hide sub-pixel seams while scrolling */
 const TILE_SEAM_OVERLAP = 1
 const PX = 3
@@ -294,14 +324,87 @@ const CHAR_DRAW_H = 84
 /** Lower sprite so visible feet meet ground (transparent padding in character PNGs) */
 const CHAR_FEET_TRIM = 12
 
-const GAME_FONT = '"Press Start 2P"'
+const FONT_PIXEL = '"Pixelify Sans"'
+const FONT_SILK = 'Silkscreen'
+const FONT_MONO = '"Geist Mono", ui-monospace, monospace'
+
+const TOOLTIP_BG = '#f0ebe0'
+const TOOLTIP_BORDER = '#b8892a'
+const TOOLTIP_TITLE = '#1a1a2e'
+const TOOLTIP_ROUTE = '#5c5348'
+const TOOLTIP_CHAMFER = 6
 
 async function loadGameFonts(): Promise<void> {
-  const sizes = [7, 8, 9, 10, 12, 14]
-  await Promise.all(sizes.map((px) => document.fonts.load(`400 ${px}px ${GAME_FONT}`)))
+  const loads = [
+    ...[10, 11, 12, 14, 16, 18, 22, 28].map((px) =>
+      document.fonts.load(`500 ${px}px ${FONT_PIXEL}`),
+    ),
+    document.fonts.load('400 11px Silkscreen'),
+    document.fonts.load('400 12px Silkscreen'),
+    document.fonts.load('400 9px "Geist Mono"'),
+    document.fonts.load('400 10px "Geist Mono"'),
+    document.fonts.load('400 11px "Geist Mono"'),
+  ]
+  await Promise.all(loads)
+}
+
+function traceChamferedRect(
+  fx: CanvasRenderingContext2D,
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  chamfer: number,
+) {
+  const c = chamfer
+  fx.beginPath()
+  fx.moveTo(left + c, top)
+  fx.lineTo(left + width - c, top)
+  fx.lineTo(left + width, top + c)
+  fx.lineTo(left + width, top + height - c)
+  fx.lineTo(left + width - c, top + height)
+  fx.lineTo(left + c, top + height)
+  fx.lineTo(left, top + height - c)
+  fx.lineTo(left, top + c)
+  fx.closePath()
 }
 
 const WELCOME_STORAGE_KEY = 'zain-projects-game-welcome-v1'
+const POSITION_STORAGE_KEY = 'zain-projects-game-position-v1'
+
+type StoredGameSession = {
+  projectsKey: string
+  snapshot: PersistedGameSnapshot
+}
+
+function readStoredGameSession(projectsKey: string): PersistedGameSnapshot | null {
+  try {
+    const raw = sessionStorage.getItem(POSITION_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as StoredGameSession
+    if (parsed.projectsKey !== projectsKey) return null
+    return parsed.snapshot
+  } catch {
+    return null
+  }
+}
+
+function writeStoredGameSession(projectsKey: string, snapshot: PersistedGameSnapshot) {
+  try {
+    const payload: StoredGameSession = { projectsKey, snapshot }
+    sessionStorage.setItem(POSITION_STORAGE_KEY, JSON.stringify(payload))
+  } catch {
+    /* ignore quota / private mode */
+  }
+}
+
+function clearStoredGameSession() {
+  try {
+    sessionStorage.removeItem(POSITION_STORAGE_KEY)
+  } catch {
+    /* ignore */
+  }
+}
 
 const GAME_KEY_CODES = new Set([
   'ArrowLeft',
@@ -343,7 +446,7 @@ function toGameProjects(projects: readonly ShowcaseProject[]): GameProject[] {
 
 function buildLevel(projects: GameProject[]): { plats: Plat[]; portals: Portal[] } {
   const n = Math.min(projects.length, PLATFORM_BLUEPRINT.length)
-  const plats: Plat[] = [{ x: 0, y: GROUND_Y, w: WORLD_W, h: GROUND_H, ground: true }]
+  const plats: Plat[] = [{ x: 0, y: GROUND_Y_DEFAULT, w: WORLD_W, h: GROUND_H, ground: true }]
   const portals: Portal[] = []
   for (let i = 0; i < n; i++) {
     const b = PLATFORM_BLUEPRINT[i]
@@ -355,6 +458,7 @@ function buildLevel(projects: GameProject[]): { plats: Plat[]; portals: Portal[]
       h: PORTAL_DRAW_SIZE,
       proj: projects[i],
       active: false,
+      proximity: 0,
     })
   }
   return { plats, portals }
@@ -557,22 +661,51 @@ function snapshotGameState(
 }
 
 function restorePlayer(saved: PersistedGameSnapshot['player']) {
-  const state: PlayerMotionState =
-    saved.state === 'lava' || saved.state === 'ouch' || saved.state === 'riding'
-      ? saved.state === 'lava'
-        ? 'ouch'
-        : saved.state
-      : 'normal'
+  const base = createInitialPlayer()
+  if (saved.state === 'normal') {
+    return {
+      ...base,
+      ...saved,
+      trail: [],
+      lastSafePlat: null,
+    }
+  }
   return {
-    ...createInitialPlayer(),
-    ...saved,
-    state,
-    trail: [],
+    ...base,
+    x: saved.lastSafeX - base.w / 2,
+    y: saved.lastSafeY - base.h,
+    vx: 0,
+    vy: 0,
+    facing: saved.facing,
+    onGround: true,
+    frame: 0,
+    frameTimer: 0,
+    state: 'normal' as PlayerMotionState,
+    lastSafeX: saved.lastSafeX,
+    lastSafeY: saved.lastSafeY,
     lastSafePlat: null,
+    trail: [],
   }
 }
 
+function loadPersistedSnapshot(
+  projectsKey: string,
+  memorySnapshot: PersistedGameSnapshot | null,
+): PersistedGameSnapshot | null {
+  return readStoredGameSession(projectsKey) ?? memorySnapshot
+}
+
+function persistGameSnapshot(
+  projectsKey: string,
+  snapshot: PersistedGameSnapshot,
+  memoryRef: { current: PersistedGameSnapshot | null },
+) {
+  memoryRef.current = snapshot
+  writeStoredGameSession(projectsKey, snapshot)
+}
+
 export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
+  const { themeTransition } = useTheme()
   const wrapRef = useRef<HTMLDivElement>(null)
   const bgCanvasRef = useRef<HTMLCanvasElement>(null)
   const fgCanvasRef = useRef<HTMLCanvasElement>(null)
@@ -583,6 +716,8 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
   const modalOpenRef = useRef(false)
   const welcomeOpenRef = useRef(false)
   const themeRef = useRef(theme)
+  const themeTransitionRef = useRef(themeTransition)
+  const lavaGlowBoostRef = useRef(0)
   const gamePersistRef = useRef<PersistedGameSnapshot | null>(null)
   const projectsKeyRef = useRef('')
   const [modal, setModal] = useState<GameProject | null>(null)
@@ -603,11 +738,14 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
 
   useEffect(() => {
     themeRef.current = theme
-  }, [theme])
+    themeTransitionRef.current = themeTransition
+    lavaGlowBoostRef.current = getLavaGlowBoost(theme, themeTransition)
+  }, [theme, themeTransition])
 
   useEffect(() => {
     if (projectsKeyRef.current && projectsKeyRef.current !== projectsKey) {
       gamePersistRef.current = null
+      clearStoredGameSession()
     }
     projectsKeyRef.current = projectsKey
   }, [projectsKey])
@@ -785,6 +923,40 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
 
     let W = 0
     let H = 0
+    let groundY = GROUND_Y_DEFAULT
+    let worldYOffset = 0
+    let playerCreated = false
+
+    function applyWorldVerticalShift(offset: number) {
+      groundY = GROUND_Y_DEFAULT + offset
+      const groundPlat = PLATS.find((pl) => pl.ground)
+      if (groundPlat) groundPlat.y = groundY
+
+      for (let i = 0; i < floatingPlats.length; i++) {
+        floatingPlats[i].y = PLATFORM_BLUEPRINT[i].y + offset
+      }
+
+      for (let i = 0; i < PORTALS.length; i++) {
+        const b = PLATFORM_BLUEPRINT[i]
+        PORTALS[i].x = b.x + PLAT_W / 2
+        PORTALS[i].y = b.y + offset - PORTAL_DRAW_SIZE + PORTAL_BASE_TRIM
+      }
+    }
+
+    function shiftDynamicWorld(dy: number) {
+      if (dy === 0) return
+      player.y += dy
+      player.lastSafeY += dy
+      if (cloud.phase !== 'idle') {
+        cloud.y += dy
+        cloud.targetY += dy
+        cloud.dropY += dy
+      }
+      for (const p of particles) p.y += dy
+      for (const b of lavaBubbles) b.y += dy
+      for (const e of lavaEmbers) e.y += dy
+    }
+
     function syncPageBg() {
       const domBg = getComputedStyle(document.documentElement)
         .getPropertyValue('--color-background-primary')
@@ -793,7 +965,12 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     }
     function resize() {
       W = Math.max(1, Math.floor(wrapEl.clientWidth))
-      H = Math.max(1, Math.floor(wrapEl.clientHeight))
+      H = Math.max(1, Math.floor(wrapEl.offsetHeight))
+      const nextOffset = Math.max(0, H - LAVA_BOTTOM_INSET - GROUND_Y_DEFAULT)
+      const dy = nextOffset - worldYOffset
+      applyWorldVerticalShift(nextOffset)
+      if (playerCreated) shiftDynamicWorld(dy)
+      worldYOffset = nextOffset
       bgCanvasEl.width = W
       bgCanvasEl.height = H
       fgCanvasEl.width = W
@@ -808,9 +985,13 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     }
     resize()
 
-    const saved = gamePersistRef.current
+    const saved = loadPersistedSnapshot(projectsKey, gamePersistRef.current)
     let camX = saved?.camX ?? 0
     const player = saved ? restorePlayer(saved.player) : createInitialPlayer()
+    if (!saved && worldYOffset !== 0) {
+      player.y += worldYOffset
+      player.lastSafeY += worldYOffset
+    }
 
     const cloud = {
       phase: 'idle' as CloudPhase,
@@ -835,6 +1016,8 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       color: string
     }[] = []
     let lavaBubbles: { x: number; y: number; vx: number; vy: number; life: number; r: number }[] = []
+    let lavaEmbers: LavaEmber[] = []
+    playerCreated = true
     let tick = 0
     let lavaHitTimer = 0
     let camShake = 0
@@ -904,15 +1087,34 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     }
 
     /** World Y where the player’s feet meet the visible lava (wave crest / fill line). */
-    function getLavaContactY() {
+    function getLavaCrestY() {
       const surfaceH = Math.round(floorTiles.surface.height * FLOOR_TILE_SCALE)
       const waveLift = Math.round(surfaceH * FLOOR_SURFACE_WAVE_RATIO) + FLOOR_WAVE_POP_ABOVE
-      const surfaceTop = GROUND_Y - waveLift
+      const surfaceTop = groundY - waveLift
       const bob = Math.round(Math.sin(tick * 0.035) * LAVA_SURFACE_BOB)
       const surfaceY = surfaceTop + bob
-      const crestY = surfaceY + Math.round(surfaceH * FLOOR_SURFACE_WAVE_RATIO)
-      // Crest is the bright wave line; bias to GROUND_Y so feet meet the orange fill the player sees
-      return Math.max(crestY + 10, GROUND_Y - 2)
+      return surfaceY + Math.round(surfaceH * FLOOR_SURFACE_WAVE_RATIO)
+    }
+
+    function getLavaContactY() {
+      return Math.max(getLavaCrestY() + 10, groundY - 2)
+    }
+
+    function spawnLavaEmber(x: number, crestY: number) {
+      const fast = Math.random() < 0.28
+      const breezy = Math.random() < 0.22
+      lavaEmbers.push({
+        x: x + (Math.random() - 0.5) * 10,
+        y: crestY - EMBER_SPAWN_LIFT_MIN - Math.random() * EMBER_SPAWN_LIFT_RANGE,
+        vy: fast ? -(0.85 + Math.random() * 0.65) : -(0.38 + Math.random() * 0.48),
+        wobblePhase: Math.random() * Math.PI * 2,
+        wobbleFreq: 0.07 + Math.random() * 0.09,
+        wobbleAmp: 0.35 + Math.random() * 0.75,
+        age: 0,
+        maxLife: fast ? 42 + Math.random() * 28 : 62 + Math.random() * 38,
+        size: Math.random() < 0.3 ? 5 : 4,
+        breezeVx: breezy ? (Math.random() < 0.5 ? -1 : 1) * (0.8 + Math.random() * 1.6) : 0,
+      })
     }
 
     function cloudTopForRideAt(rideWorldY: number) {
@@ -1023,6 +1225,10 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       lavaFlash = 10
       playSizzle()
       spawnLavaSplash(player.x + player.w / 2, contact, 14)
+      const crestY = getLavaCrestY()
+      for (let i = 0; i < 6; i++) {
+        spawnLavaEmber(player.x + player.w / 2 + (Math.random() - 0.5) * 40, crestY)
+      }
       for (let i = 0; i < 6; i++) {
         lavaBubbles.push({
           x: player.x + player.w / 2 + (Math.random() - 0.5) * 28,
@@ -1169,7 +1375,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         player.state === 'normal' &&
         !player.onGround &&
         player.vy > 0.5 &&
-        player.y + player.h > GROUND_Y - 130
+        player.y + player.h > groundY - 130
       if (fallingIntoLava) return char.falling
       if (!player.onGround) {
         if (player.vy < -0.8) return char.jump1
@@ -1331,8 +1537,8 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       const surfaceH = Math.round(surface.height * FLOOR_TILE_SCALE)
       const fillH = Math.round(fill.height * FLOOR_TILE_SCALE)
       const waveLift = Math.round(surfaceH * FLOOR_SURFACE_WAVE_RATIO) + FLOOR_WAVE_POP_ABOVE
-      const surfaceTop = GROUND_Y - waveLift
-      const fillTop = GROUND_Y - TILE_SEAM_OVERLAP
+      const surfaceTop = groundY - waveLift
+      const fillTop = groundY - TILE_SEAM_OVERLAP
       const stepX = tileW - TILE_SEAM_OVERLAP
       const bleed = TILE_SEAM_OVERLAP
       const drawCam = Math.round(camX)
@@ -1359,15 +1565,20 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       }
 
       const isDark = themeRef.current === 'dark'
-      if (!isDark) {
-        const glow = 0.08 + Math.sin(tick * 0.06) * 0.04
-        const crestY = surfaceY + Math.round(surfaceH * FLOOR_SURFACE_WAVE_RATIO)
+      const boost = lavaGlowBoostRef.current
+      const crestY = surfaceY + Math.round(surfaceH * FLOOR_SURFACE_WAVE_RATIO)
+
+      if (isDark || boost > 0) {
+        const pulse = 0.08 + Math.sin(tick * 0.06) * 0.04
+        const glow = isDark
+          ? pulse * (0.35 + boost * 1.15)
+          : pulse * (1 + boost * 2.4)
         c.globalCompositeOperation = 'lighter'
         c.globalAlpha = glow
-        c.fillStyle = '#ff9a3c'
+        c.fillStyle = isDark ? '#ff5a1a' : '#ff9a3c'
         for (let wx = 0; wx < WORLD_W + tileW; wx += stepX) {
           if (wx + tileW < drawCam - tileW || wx > drawCam + W + tileW) continue
-          c.fillRect(wx, crestY, tileW + bleed, 2)
+          c.fillRect(wx, crestY, tileW + bleed, isDark ? 3 : 2)
         }
         c.globalAlpha = 1
         c.globalCompositeOperation = 'source-over'
@@ -1378,11 +1589,12 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
 
     function drawLavaBubbles() {
       const drawCam = Math.round(camX)
+      const intensity = 0.7 + lavaGlowBoostRef.current * 0.3
       c.save()
       c.imageSmoothingEnabled = false
       c.translate(-drawCam, 0)
       for (const b of lavaBubbles) {
-        const a = b.life
+        const a = b.life * intensity
         const px = Math.round(b.x)
         const py = Math.round(b.y)
         const r = Math.max(1, Math.round(b.r))
@@ -1392,6 +1604,42 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         c.fillRect(px, py - 1, Math.max(1, r - 1), 1)
       }
       c.restore()
+    }
+
+    function drawLavaEmbers(fx: CanvasRenderingContext2D) {
+      const drawCam = Math.round(camX)
+      const intensity = 0.62 + lavaGlowBoostRef.current * 0.38
+      fx.save()
+      fx.imageSmoothingEnabled = false
+      fx.translate(-drawCam, 0)
+
+      for (const ember of lavaEmbers) {
+        const progress = ember.age / ember.maxLife
+        if (progress >= 1) continue
+
+        const fade = 1 - progress * progress * 0.9
+        const heat = Math.min(1, progress * 1.25)
+        const r = Math.round(252 + (205 - 252) * heat)
+        const g = Math.round(188 + (38 - 188) * heat)
+        const b = Math.round(40 + (8 - 40) * heat)
+        const alpha = fade * (0.68 + (1 - heat) * 0.22) * intensity
+        const px = Math.round(ember.x)
+        const py = Math.round(ember.y)
+        const sz = ember.size
+
+        fx.fillStyle = `rgba(255, 120, 24, ${alpha * 0.28})`
+        fx.fillRect(px - 1, py - 1, sz + 2, sz + 2)
+
+        fx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`
+        fx.fillRect(px, py, sz, sz)
+
+        if (progress < 0.28) {
+          fx.fillStyle = `rgba(255, 220, 110, ${alpha * 0.65})`
+          fx.fillRect(px, py, Math.max(2, sz - 1), Math.max(2, sz - 1))
+        }
+      }
+
+      fx.restore()
     }
 
     function drawPlatform(pl: Plat) {
@@ -1429,29 +1677,28 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       name: string,
       route: string,
       active: boolean,
-      pal: Palette,
+      _pal: Palette,
     ) {
-      const titleSize = 11
+      const titleSize = 12
       const routeSize = 9
       const lineGap = 6
       const padX = 12
       const padY = 8
 
-      fx.font = `400 ${titleSize}px ${GAME_FONT}`
+      fx.font = `400 ${titleSize}px ${FONT_SILK}`
       const titleW = fx.measureText(name).width
-      fx.font = `400 ${routeSize}px ${GAME_FONT}`
+      fx.font = `400 ${routeSize}px ${FONT_MONO}`
       const routeW = fx.measureText(route).width
       const boxW = Math.max(titleW, routeW) + padX * 2
       const boxH = titleSize + routeSize + lineGap + padY * 2
       const left = cx - boxW / 2
       const top = portalTopY - boxH - 12
 
-      fx.fillStyle = active ? pal.portalLabelBgActive : pal.portalLabelBg
-      fx.strokeStyle = active ? pal.portalLabelBorderActive : pal.portalLabelBorder
-      fx.lineWidth = active ? 1 : 0.75
-      fx.beginPath()
-      fx.roundRect(left, top, boxW, boxH, 9)
+      traceChamferedRect(fx, left, top, boxW, boxH, TOOLTIP_CHAMFER)
+      fx.fillStyle = TOOLTIP_BG
       fx.fill()
+      fx.strokeStyle = TOOLTIP_BORDER
+      fx.lineWidth = active ? 2.5 : 2
       fx.stroke()
 
       fx.textAlign = 'center'
@@ -1459,12 +1706,12 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       const titleY = top + padY + titleSize / 2
       const routeY = titleY + titleSize / 2 + lineGap + routeSize / 2
 
-      fx.font = `400 ${titleSize}px ${GAME_FONT}`
-      fx.fillStyle = active ? pal.portalTitleActive : pal.portalTitle
+      fx.font = `400 ${titleSize}px ${FONT_SILK}`
+      fx.fillStyle = TOOLTIP_TITLE
       fx.fillText(name, cx, titleY)
 
-      fx.font = `400 ${routeSize}px ${GAME_FONT}`
-      fx.fillStyle = active ? pal.portalRouteActive : pal.portalRoute
+      fx.font = `400 ${routeSize}px ${FONT_MONO}`
+      fx.fillStyle = TOOLTIP_ROUTE
       fx.fillText(route, cx, routeY)
 
       fx.textBaseline = 'alphabetic'
@@ -1487,6 +1734,68 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       })
     }
 
+    function portalProximity(p: Portal): number {
+      if (player.state !== 'normal') return 0
+      const pcx = player.x + player.w / 2
+      const pcy = player.y + player.h / 2
+      const tcx = p.x
+      const tcy = p.y + p.h / 2
+      const dx = Math.abs(pcx - tcx)
+      const dy = Math.abs(pcy - tcy)
+      const rx = p.w * 0.88 + 40
+      const ry = p.h * 0.75 + 36
+      const dist = Math.hypot(dx / rx, dy / ry)
+      if (dist >= 1) return 0
+      const t = 1 - dist
+      return t * t
+    }
+
+    function drawPortalGlow(fx: CanvasRenderingContext2D) {
+      const drawCam = Math.round(camX)
+      fx.save()
+      fx.imageSmoothingEnabled = true
+      fx.translate(-drawCam, 0)
+
+      PORTALS.forEach((p, i) => {
+        const prox = p.proximity
+        if (prox <= 0.02) return
+
+        const cx = p.x
+        const cy = p.y + p.h * 0.52
+        const baseR = p.w * 0.5
+        const pulseT = tick * 0.032 + i * 1.35
+        const pulse =
+          0.5 +
+          (Math.sin(pulseT) * 0.62 + Math.sin(pulseT * 0.55 + 0.6) * 0.38) * 0.5
+        const glowR = baseR * (1.05 + prox * 0.35 + pulse * 0.1)
+
+        const innerAlpha = (0.22 + pulse * 0.08) * prox
+        const inner = fx.createRadialGradient(cx, cy, baseR * 0.08, cx, cy, glowR)
+        inner.addColorStop(0, `rgba(140, 176, 255, ${innerAlpha})`)
+        inner.addColorStop(0.42, `rgba(104, 136, 248, ${innerAlpha * 0.58})`)
+        inner.addColorStop(1, 'rgba(104, 136, 248, 0)')
+        fx.fillStyle = inner
+        fx.beginPath()
+        fx.arc(cx, cy, glowR, 0, Math.PI * 2)
+        fx.fill()
+
+        for (let ring = 0; ring < 2; ring++) {
+          const phase = (tick * 0.011 + i * 0.65 + ring * 0.5) % 1
+          const eased = 1 - (1 - phase) ** 3
+          const ringR = baseR * (0.72 + eased * 1.05)
+          const fade = 1 - phase
+          const alpha = fade * fade * fade * 0.34 * prox
+          fx.strokeStyle = `rgba(120, 168, 255, ${alpha})`
+          fx.lineWidth = 1.5 + fade * fade * 2.5
+          fx.beginPath()
+          fx.arc(cx, cy, ringR, 0, Math.PI * 2)
+          fx.stroke()
+        }
+      })
+
+      fx.restore()
+    }
+
     function syncPortalSprites() {
       const drawCam = Math.round(camX)
       PORTALS.forEach((p, i) => {
@@ -1499,6 +1808,18 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         img.style.width = `${p.w}px`
         img.style.height = `${p.h}px`
         img.style.transform = ''
+        const prox = p.proximity
+        if (prox > 0.04) {
+          const pulseT = tick * 0.034 + i * 1.1
+          const pulse =
+            0.68 +
+            (Math.sin(pulseT) * 0.62 + Math.sin(pulseT * 0.55 + 0.5) * 0.38) * 0.28
+          const blur = 6 + prox * 14 * pulse
+          const alpha = 0.32 + prox * 0.4 * pulse
+          img.style.filter = `drop-shadow(0 0 ${blur}px rgba(104, 136, 248, ${alpha}))`
+        } else {
+          img.style.filter = ''
+        }
       })
     }
 
@@ -1509,6 +1830,10 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
 
     function update() {
       tick++
+      lavaGlowBoostRef.current = getLavaGlowBoost(
+        themeRef.current,
+        themeTransitionRef.current,
+      )
       const keys = keysRef.current
       if (player.state === 'normal') {
         if (keys.ArrowLeft || keys.KeyA) {
@@ -1525,7 +1850,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
           spawnParticles(player.x + player.w / 2, player.y + player.h)
         }
         player.vy += G
-        if (!player.onGround && player.y + player.h > GROUND_Y - 150) {
+        if (!player.onGround && player.y + player.h > groundY - 150) {
           player.vy += G * 0.95
         }
         player.x += player.vx
@@ -1600,7 +1925,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         for (let i = 0; i < spawnN; i++) {
           lavaBubbles.push({
             x: viewL + Math.random() * (viewR - viewL),
-            y: GROUND_Y + 2 + Math.random() * 22,
+            y: groundY + 2 + Math.random() * 22,
             vx: (Math.random() - 0.5) * 0.35,
             vy: -0.3 - Math.random() * 0.55,
             life: 0.55 + Math.random() * 0.45,
@@ -1613,11 +1938,38 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         b.y += b.vy
         b.vy -= 0.008
         b.life -= 0.018
-        return b.life > 0 && b.y > GROUND_Y - 48
+        return b.life > 0 && b.y > groundY - 48
+      })
+
+      if (tick % EMBER_SPAWN_EVERY === 0 && lavaEmbers.length < EMBER_MAX) {
+        const crestY = getLavaCrestY()
+        const viewL = camX - 24
+        const viewR = camX + W + 24
+        const spawnN = 1 + (Math.random() < 0.5 ? 1 : 0) + (Math.random() < 0.15 ? 1 : 0)
+        for (let i = 0; i < spawnN && lavaEmbers.length < EMBER_MAX; i++) {
+          spawnLavaEmber(viewL + Math.random() * (viewR - viewL), crestY)
+        }
+      }
+
+      const emberCullY = getLavaCrestY() - 165
+      lavaEmbers = lavaEmbers.filter((ember) => {
+        ember.age++
+        ember.y += ember.vy
+        ember.x +=
+          ember.breezeVx +
+          Math.sin(ember.age * ember.wobbleFreq + ember.wobblePhase) * ember.wobbleAmp
+        if (ember.breezeVx !== 0) {
+          ember.breezeVx *= 0.998
+          if (Math.abs(ember.breezeVx) < 0.05) ember.breezeVx = 0
+        } else if (Math.random() < 0.006) {
+          ember.breezeVx = (Math.random() < 0.5 ? -1 : 1) * (0.5 + Math.random() * 1.1)
+        }
+        return ember.age < ember.maxLife && ember.y > emberCullY
       })
 
       let nearAny = false
       PORTALS.forEach((p) => {
+        p.proximity = portalProximity(p)
         const dx = Math.abs(player.x + player.w / 2 - p.x)
         const dy = Math.abs(player.y + player.h / 2 - (p.y + p.h / 2))
         p.active =
@@ -1649,6 +2001,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       drawFloor()
       drawLavaBubbles()
       PLATS.forEach((pl) => drawPlatform(pl))
+      drawPortalGlow(c)
       PORTALS.forEach((p) => drawPortalLabelOn(c, p, pal))
       syncDecorationSprites()
       syncPortalSprites()
@@ -1670,6 +2023,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         fg.fillRect(p.x - Math.round(camX) - p.size / 2, p.y - p.size / 2, p.size, p.size)
       })
       fg.globalAlpha = 1
+      drawLavaEmbers(fg)
       drawLavaFlash()
       drawCloud(fg)
       drawCharacter(art)
@@ -1681,7 +2035,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     document.addEventListener('viewtransitionend', onViewTransitionEnd)
 
     teardown = () => {
-      gamePersistRef.current = snapshotGameState(player, camX)
+      persistGameSnapshot(projectsKey, snapshotGameState(player, camX), gamePersistRef)
       cancelAnimationFrame(raf)
       tryOpenRef.current = null
       window.removeEventListener('resize', onResize)
@@ -1698,7 +2052,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       ac.abort()
       teardown?.()
     }
-  }, [active, projects])
+  }, [active, projects, projectsKey])
 
   return (
     <>

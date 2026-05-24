@@ -1,10 +1,23 @@
+/* 1:1 with references/pinboard_lighting.html */
+.root {
+  position: absolute;
+  inset: 0;
+}
+
 .frame {
   position: absolute;
   inset: 0;
+  padding-top: var(--nav-overlay-height);
+  box-sizing: border-box;
   overflow: hidden;
   cursor: grab;
   user-select: none;
   touch-action: none;
+  border-radius: 0;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.055) 1px, transparent 1px);
+  background-size: 6px 6px;
 }
 
 .frame:active {
@@ -18,12 +31,23 @@
   will-change: transform;
 }
 
-.boardBg {
+.boardCanvas {
   position: absolute;
   top: 0;
   left: 0;
   pointer-events: none;
-  background-size: 300px 300px;
+  display: block;
+}
+
+.lightOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  display: block;
 }
 
 .stringSvg {
@@ -31,15 +55,83 @@
   top: 0;
   left: 0;
   pointer-events: none;
+  z-index: 1;
+}
+
+.stringLine {
+  transition: opacity 400ms ease-out;
+}
+
+.stringHub {
+  transition: opacity 300ms ease-out;
+}
+
+.boardEntrance {
+  transition: opacity 400ms ease-out;
+}
+
+.regionNavEntrance {
+  transition:
+    opacity 400ms ease-out,
+    transform 400ms ease-out;
+}
+
+.cardShell {
+  position: absolute;
+  z-index: 3;
+}
+
+.cardShell:hover {
+  z-index: 60 !important;
+}
+
+.cardMotion {
+  width: 100%;
+}
+
+.cardEntrance {
+  transition:
+    opacity 350ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cardEntrance.cardFloatActive {
+  transition: none;
+  transform: translateY(0);
+  animation: cardFloat var(--float-duration) ease-in-out infinite alternate;
+  animation-delay: var(--float-delay);
+}
+
+@keyframes cardFloat {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-3px);
+  }
 }
 
 .card {
-  position: absolute;
+  position: relative;
+  width: 100%;
   padding: 7px 7px 20px;
   cursor: pointer;
   will-change: transform;
   border: none;
   text-align: left;
+}
+
+.clusterLabelEntrance {
+  transition:
+    opacity 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hudEntrance {
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
 }
 
 .pin {
@@ -49,11 +141,10 @@
   position: absolute;
   top: -7px;
   left: 50%;
-  transform: translateX(-50%);
   z-index: 2;
   box-shadow:
-    0 2px 3px rgba(0, 0, 0, 0.4),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
   pointer-events: none;
 }
 
@@ -71,12 +162,13 @@
 }
 
 .cardName {
-  font-family: var(--font-sans);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 500;
   display: block;
   margin-top: 7px;
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
 }
 
 .cardSub {
@@ -84,11 +176,33 @@
   font-size: 10px;
   display: block;
   margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.clusterLabelWrap {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 4;
 }
 
 .clusterLabel {
-  position: absolute;
-  pointer-events: none;
+  position: relative;
+  left: 0;
+  top: 0;
+  transform: none;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.clusterLabel:hover {
+  transform: scale(1.04);
+}
+
+.clusterLabel:focus-visible {
+  outline: 2px solid rgba(196, 120, 58, 0.65);
+  outline-offset: 4px;
 }
 
 .clInner {
@@ -107,16 +221,17 @@
 }
 
 .clName {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .clCount {
   font-family: var(--font-mono);
   font-size: 10px;
+  letter-spacing: 0.02em;
 }
 
 .hud {
@@ -125,25 +240,51 @@
   left: 50%;
   transform: translateX(-50%);
   pointer-events: none;
-  border-radius: 20px;
-  padding: 5px 14px;
-  z-index: 20;
+  border-radius: 0;
+  padding: 8px 18px;
+  z-index: 10;
+  background-color: #1a1a2e;
+  clip-path: polygon(
+    6px 0%,
+    calc(100% - 6px) 0%,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0% calc(100% - 6px),
+    0% 6px
+  );
 }
 
 .hud span {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
+  font-family: var(--font-pixel);
+  font-size: clamp(10px, 0.95vw, 11px);
+  line-height: 1.35;
+  letter-spacing: 0.04em;
+  color: #f0ebe0;
 }
 
 .regionNav {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  border-radius: 6px;
+  top: calc(var(--nav-overlay-height) + 14px);
+  right: max(14px, env(safe-area-inset-right));
+  border-radius: 0;
   overflow: hidden;
   min-width: 168px;
-  z-index: 20;
+  z-index: 10;
+  pointer-events: auto;
+  border-width: 2px;
+  border-style: solid;
+  clip-path: polygon(
+    6px 0%,
+    calc(100% - 6px) 0%,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0% calc(100% - 6px),
+    0% 6px
+  );
 }
 
 .rnHeader {
@@ -153,10 +294,10 @@
 }
 
 .rnHeader span {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-family: var(--font-silk);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -186,10 +327,11 @@
 }
 
 .rnName {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
   flex: 1;
+  letter-spacing: 0.02em;
 }
 
 .rnProgress {
@@ -201,6 +343,7 @@
 .rnFrac {
   font-family: var(--font-mono);
   font-size: 10px;
+  letter-spacing: 0.02em;
 }
 
 .rnBarWrap {
@@ -208,9 +351,11 @@
   height: 3px;
   border-radius: 2px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .rnBarFill {
+  display: block;
   height: 100%;
   border-radius: 2px;
 }
@@ -218,7 +363,7 @@
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(10, 7, 3, 0.82);
+  background: rgba(8, 5, 2, 0.85);
   z-index: 500;
   opacity: 0;
   pointer-events: none;
@@ -226,6 +371,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: clamp(16px, 4vw, 32px);
+  box-sizing: border-box;
 }
 
 .overlayOpen {
@@ -234,22 +381,31 @@
 }
 
 .slideshow {
-  width: 320px;
+  width: min(92vw, 720px);
+  max-height: min(82vh, 680px);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
 }
 
 .ssImgWrap {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
+  max-height: min(52vh, 400px);
   overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .ssImg {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .ssPrev,
@@ -257,11 +413,11 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(10, 7, 3, 0.5);
+  background: rgba(8, 5, 2, 0.5);
   border: none;
   color: #f1efe8;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -279,13 +435,13 @@
 
 .ssPrev:hover,
 .ssNext:hover {
-  background: rgba(10, 7, 3, 0.85);
+  background: rgba(8, 5, 2, 0.88);
 }
 
 .ssPrev svg,
 .ssNext svg {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   stroke: #f1efe8;
   stroke-width: 2;
   fill: none;
@@ -301,8 +457,8 @@
 }
 
 .ssDot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   cursor: pointer;
   transition: background 0.15s;
@@ -311,46 +467,50 @@
 }
 
 .ssBody {
-  padding: 13px 15px 15px;
+  padding: 16px 20px 18px;
+  flex-shrink: 0;
 }
 
 .ssCountry {
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .ssRegionLabel {
   font-family: var(--font-mono);
-  font-size: 10px;
-  margin-top: 3px;
+  font-size: 11px;
+  margin-top: 4px;
   display: block;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .ssCaption {
   font-family: var(--font-mono);
-  font-size: 11px;
-  margin-top: 8px;
+  font-size: 12px;
+  margin-top: 10px;
   display: block;
-  min-height: 16px;
+  min-height: 18px;
+  letter-spacing: 0.02em;
 }
 
 .ssCounter {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   float: right;
-  margin-top: -18px;
+  margin-top: -20px;
+  letter-spacing: 0.04em;
 }
 
 .ssClose {
   position: absolute;
-  top: 9px;
-  right: 9px;
-  background: rgba(10, 7, 3, 0.5);
+  top: 12px;
+  right: 12px;
+  background: rgba(8, 5, 2, 0.5);
   border: none;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -360,12 +520,12 @@
 }
 
 .ssClose:hover {
-  background: rgba(10, 7, 3, 0.85);
+  background: rgba(8, 5, 2, 0.88);
 }
 
 .ssClose svg {
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   stroke: #f1efe8;
   stroke-width: 2;
   fill: none;

@@ -1,0 +1,159 @@
+/* About page design tokens — scoped via .about-app on the page root */
+.about-app {
+  --bg: #f2ede3;
+  --surface: #e9e2d4;
+  --card-1: #edf5e2;
+  --card-2: #e8ecf8;
+  --card-3: #f7f0e0;
+  --text: #111111;
+  --text-sub: #484038;
+  --text-dim: #8a7e6e;
+  --border-px: #b0a48e;
+  --accent-g: #2a7a2a;
+  --accent-b: #2e4fc8;
+  --accent-o: #b86c10;
+  --accent-p: #7040c8;
+  --accent-y: #c89a10;
+  --code-bg: #0d1117;
+  --hero-grad: linear-gradient(175deg, #bccef0 0%, #9ab0e0 55%, #8098cc 100%);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.16);
+  --skyline-far: #c4ccd8;
+  --skyline-near: #9aa8bc;
+  --skyline-far-opacity: 1;
+  --skyline-near-opacity: 1;
+  --skyline-window-lit: #c89a10;
+  --skyline-window-unlit: #a89068;
+  --bg-grad-top: #f8f4ec;
+  --bg-grad-bottom: #ebe4d8;
+  --font-geist: 'Geist', 'Geist Sans', system-ui, sans-serif;
+  --font-pixel: 'Pixelify Sans', sans-serif;
+  --font-silk: 'Silkscreen', monospace;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+}
+
+.app--about {
+  --about-content-max: var(--nav-content-max);
+  --about-pad-x: var(--nav-pad-x);
+}
+
+.about-app[data-theme='dark'],
+:root[data-theme='dark'] .about-app {
+  --bg: #090c18;
+  --surface: #0f1425;
+  --card-1: #0e1a0c;
+  --card-2: #0c1228;
+  --card-3: #1a1508;
+  --text: #ede8db;
+  --text-sub: #a89e88;
+  --text-dim: #625c4c;
+  --border-px: #3a3e58;
+  --accent-g: #3ec83e;
+  --accent-b: #6888f8;
+  --accent-o: #e8a020;
+  --accent-p: #a070f8;
+  --accent-y: #f0c030;
+  --code-bg: #050810;
+  --hero-grad: linear-gradient(175deg, #08182e 0%, #081428 55%, #060c1e 100%);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.7);
+  --skyline-far: #0c111f;
+  --skyline-near: #182238;
+  --skyline-far-opacity: 1;
+  --skyline-near-opacity: 1;
+  --skyline-window-lit: #e8b04a;
+  --skyline-window-unlit: #5c4a32;
+  --bg-grad-top: #0c1122;
+  --bg-grad-bottom: #070912;
+}
+
+.about-app {
+  background: linear-gradient(
+    180deg,
+    var(--bg-grad-top) 0%,
+    var(--bg) 42%,
+    var(--bg-grad-bottom) 100%
+  );
+  color: var(--text);
+  font-family: var(--font-geist);
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+html.about-scroll,
+html.about-scroll body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: none;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-width: 100%;
+  width: 100%;
+}
+
+html.about-scroll #root {
+  overflow-x: hidden;
+  max-height: none;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-width: 100%;
+  width: 100%;
+}
+
+html.about-scroll .app {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: none;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-width: 100%;
+  width: 100%;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes portalPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    transform: scale(1.07);
+    filter: drop-shadow(0 0 12px rgba(104, 136, 248, 0.55));
+  }
+}
+
+.theme-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  background: var(--bg);
+  opacity: 0;
+  animation: themeFlash 160ms ease forwards;
+}
+
+@keyframes themeFlash {
+  0% {
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0;
+  }
+}

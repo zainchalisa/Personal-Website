@@ -1,16 +1,17 @@
 .wrap {
-  --font-game: 'Press Start 2P', system-ui, sans-serif;
   position: relative;
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  height: auto;
+  height: 100%;
   max-height: 100%;
+  padding-top: var(--nav-overlay-height);
+  box-sizing: border-box;
   overflow: hidden;
   border: none;
   border-radius: 0;
   background-color: transparent;
-  font-family: var(--font-game);
+  font-family: var(--font-pixel);
 }
 
 .bgCanvas,
@@ -22,16 +23,16 @@
   height: 100%;
 }
 
-.bgCanvas {
-  z-index: 0;
-}
-
 .portalLayer {
   position: absolute;
   inset: 0;
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
+}
+
+.bgCanvas {
+  z-index: 0;
 }
 
 .decoSprite {
@@ -67,19 +68,28 @@
   justify-content: center;
   flex-wrap: nowrap;
   gap: 0;
-  font-family: var(--font-game);
+  font-family: var(--font-silk);
   font-weight: 400;
-  font-size: clamp(9px, 0.95vw, 10px);
-  line-height: 1.4;
-  color: var(--color-text-secondary);
+  font-size: clamp(12px, 1.25vw, 14px);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: #f0ebe0;
   white-space: nowrap;
   pointer-events: none;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 0.5px solid var(--color-border-tertiary);
-  background-color: color-mix(in srgb, var(--color-background-primary) 96%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  padding: 10px 22px;
+  border: none;
+  border-radius: 0;
+  background-color: #1a1a2e;
+  clip-path: polygon(
+    8px 0%,
+    calc(100% - 8px) 0%,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0% calc(100% - 8px),
+    0% 8px
+  );
 }
 
 .hintRow {
@@ -88,39 +98,46 @@
 }
 
 .hintSep {
-  margin: 0 0.5rem;
-  color: var(--color-text-tertiary);
+  margin: 0 0.65rem;
+  color: rgba(240, 235, 224, 0.55);
 }
 
 .ehint {
   position: absolute;
   z-index: 3;
-  font-family: var(--font-game);
-  font-size: 8px;
+  font-family: var(--font-silk);
+  font-size: clamp(10px, 1.05vw, 12px);
   font-weight: 400;
-  color: var(--color-background-primary);
-  background-color: var(--color-text-primary);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  color: #1a1a2e;
+  background-color: #f0ebe0;
+  border: 2px solid #b8892a;
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: 0;
   pointer-events: none;
   display: none;
   transform: translateX(-50%);
   white-space: nowrap;
-  box-shadow: 0 6px 20px color-mix(in srgb, var(--color-text-primary) 25%, transparent);
+  box-shadow: 0 4px 14px rgba(26, 26, 46, 0.18);
 }
 
 .ehint::after {
   content: '';
   position: absolute;
-  bottom: -5px;
+  bottom: -7px;
   left: 50%;
   transform: translateX(-50%);
-  border: 3px solid transparent;
-  border-top-color: var(--color-text-primary);
+  width: 10px;
+  height: 10px;
+  background-color: #f0ebe0;
+  border-right: 2px solid #b8892a;
+  border-bottom: 2px solid #b8892a;
+  rotate: 45deg;
 }
 
 .overlay {
-  position: absolute;
+  position: fixed;
   z-index: 5;
   inset: 0;
   background: color-mix(in srgb, var(--color-background-primary) 88%, transparent);
@@ -145,19 +162,19 @@
 
 .welcomeTitle {
   margin: 0 0 1.5rem;
-  font-family: var(--font-game);
-  font-size: clamp(14px, 2.8vw, 22px);
-  font-weight: 400;
-  line-height: 1.75;
+  font-family: var(--font-pixel);
+  font-size: clamp(18px, 3.2vw, 28px);
+  font-weight: 500;
+  line-height: 1.45;
   color: var(--color-text-primary);
 }
 
 .welcomePrompt {
   margin: 0;
-  font-family: var(--font-game);
-  font-size: clamp(9px, 1.35vw, 11px);
+  font-family: var(--font-pixel);
+  font-size: clamp(11px, 1.5vw, 14px);
   font-weight: 400;
-  line-height: 1.85;
+  line-height: 1.55;
   color: var(--color-text-secondary);
 }
 
@@ -165,28 +182,28 @@
   background-color: var(--color-background-primary);
   border: 0.5px solid var(--color-border-tertiary);
   border-radius: var(--border-radius-lg, 14px);
-  padding: 1.75rem;
-  width: min(400px, calc(100% - 2rem));
+  padding: 2.25rem 2.5rem;
+  width: min(520px, calc(100% - 2rem));
   position: relative;
   box-shadow: 0 24px 64px color-mix(in srgb, var(--color-text-primary) 12%, transparent);
 }
 
 .modalDismiss {
-  font-family: var(--font-game);
-  font-size: 8px;
+  font-family: var(--font-pixel);
+  font-size: 11px;
   color: var(--color-text-tertiary);
-  margin-top: 14px;
+  margin-top: 18px;
   text-align: center;
 }
 
 .close {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  font-size: 18px;
+  top: 14px;
+  right: 16px;
+  font-size: 22px;
   cursor: pointer;
   color: var(--color-text-tertiary);
-  font-family: var(--font-game);
+  font-family: var(--font-geist);
   background: none;
   border: none;
   line-height: 1;
@@ -197,60 +214,62 @@
 }
 
 .mtag {
-  font-family: var(--font-game);
-  font-size: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--color-text-tertiary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
 }
 
 .mtitle {
-  font-family: var(--font-game);
-  font-size: 12px;
-  line-height: 1.6;
-  font-weight: 400;
+  font-family: var(--font-pixel);
+  font-size: clamp(18px, 3vw, 22px);
+  line-height: 1.35;
+  font-weight: 500;
   color: var(--color-text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .mdesc {
-  font-family: var(--font-game);
-  font-size: 9px;
+  font-family: var(--font-geist);
+  font-size: 14px;
   color: var(--color-text-primary);
   opacity: 0.82;
-  line-height: 1.85;
-  margin-bottom: 14px;
+  line-height: 1.6;
+  margin-bottom: 18px;
 }
 
 .mtags {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .tag {
-  font-family: var(--font-game);
-  font-size: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   background-color: var(--color-background-secondary);
   color: var(--color-text-secondary);
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
   border: 0.5px solid var(--color-border-tertiary);
+  letter-spacing: 0.02em;
 }
 
 .links {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .link {
   flex: 1;
   text-align: center;
-  padding: 8px;
+  padding: 10px 12px;
   border-radius: var(--border-radius-md, 8px);
-  font-family: var(--font-game);
-  font-size: 9px;
-  font-weight: 400;
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  font-weight: 500;
   text-decoration: none;
 }
 

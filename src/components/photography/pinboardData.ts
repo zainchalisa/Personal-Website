@@ -1,11 +1,25 @@
 import {
-  formatRegionLabel,
   getCountryCardsForRegion,
   type CountryCardData,
   type PinboardPhoto,
   type PinboardRegion,
 } from './photographyPhotos'
+import {
+  REGION_COUNTRY_TOTALS,
+  WORLD_COUNTRY_TOTAL,
+  type PinboardRegionTotalId,
+} from './regionCountryTotals'
 import { countryPhotoColors } from './pinboardUtils'
+
+export { WORLD_COUNTRY_TOTAL, REGION_COUNTRY_TOTALS }
+
+export type BoardRegionId =
+  | 'europe'
+  | 'east-asia'
+  | 'se-asia'
+  | 'americas'
+  | 'africa'
+  | 'middle-east'
 
 export type BoardCountryLayout = {
   card: CountryCardData
@@ -13,85 +27,180 @@ export type BoardCountryLayout = {
   y: number
   rot: number
   w: number
+  z: number
   c1: string
   c2: string
 }
 
 export type BoardRegionLayout = {
-  region: PinboardRegion
-  id: string
+  id: BoardRegionId
   name: string
   pin: string
   total: number
   cx: number
   cy: number
+  /** When set, country cards are loaded from photographyPhotos for this region */
+  dataRegion?: PinboardRegion
   countries: BoardCountryLayout[]
 }
 
-const REGION_META: Record<
-  PinboardRegion,
-  { id: string; pin: string; cx: number; cy: number; total: number }
-> = {
-  EUROPE: { id: 'europe', pin: '#9BAAB8', cx: 1320, cy: 320, total: 12 },
-  ASIA: { id: 'asia', pin: '#D4904A', cx: 620, cy: 350, total: 6 },
-  'NORTH AMERICA': { id: 'americas', pin: '#D45050', cx: 1980, cy: 420, total: 8 },
+/** Scattered hub positions on the 2600×1400 board (rough geography, not a grid). */
+const BOARD_REGION_DEFS: {
+  id: BoardRegionId
+  name: string
+  pin: string
+  cx: number
+  cy: number
+  dataRegion?: PinboardRegion
+}[] = [
+  {
+    id: 'europe',
+    name: 'Europe',
+    pin: '#b8892a',
+    cx: 1080,
+    cy: 200,
+    dataRegion: 'EUROPE',
+  },
+  {
+    id: 'east-asia',
+    name: 'East Asia',
+    pin: '#b8892a',
+    cx: 340,
+    cy: 260,
+    dataRegion: 'ASIA',
+  },
+  {
+    id: 'se-asia',
+    name: 'SE Asia',
+    pin: '#b8892a',
+    cx: 520,
+    cy: 1080,
+  },
+  {
+    id: 'americas',
+    name: 'Americas',
+    pin: '#b8892a',
+    cx: 1980,
+    cy: 540,
+    dataRegion: 'NORTH AMERICA',
+  },
+  {
+    id: 'africa',
+    name: 'Africa',
+    pin: '#b8892a',
+    cx: 1240,
+    cy: 1140,
+  },
+  {
+    id: 'middle-east',
+    name: 'Middle East',
+    pin: '#b8892a',
+    cx: 1920,
+    cy: 180,
+  },
+]
+
+/** Offset country grids from each hub so clusters fan in different directions. */
+const GRID_OFFSET: Record<BoardRegionId, { dx: number; dy: number }> = {
+  'east-asia': { dx: 80, dy: 70 },
+  'se-asia': { dx: -50, dy: 85 },
+  europe: { dx: -20, dy: 62 },
+  'middle-east': { dx: 70, dy: 75 },
+  africa: { dx: 10, dy: 80 },
+  americas: { dx: -20, dy: 68 },
 }
 
-/** Fixed world positions per country (deterministic layout on 2600×1400 board). */
-const COUNTRY_POSITIONS: Record<string, { x: number; y: number; rot: number; w: number }> = {
-  Italy: { x: 1180, y: 220, rot: -3, w: 106 },
-  Switzerland: { x: 1268, y: 200, rot: 2, w: 96 },
-  France: { x: 1138, y: 278, rot: -2, w: 100 },
-  Monaco: { x: 1208, y: 340, rot: 3, w: 88 },
-  Spain: { x: 1058, y: 300, rot: 2, w: 96 },
-  Germany: { x: 1308, y: 360, rot: 2, w: 94 },
-  Austria: { x: 1378, y: 300, rot: -4, w: 94 },
-  Hungary: { x: 1428, y: 378, rot: -2, w: 92 },
-  'Czech Republic': { x: 1348, y: 248, rot: 3, w: 98 },
-  Turkey: { x: 1488, y: 318, rot: -3, w: 102 },
-  'Vatican City': { x: 1228, y: 178, rot: 4, w: 86 },
-  'United States': { x: 1838, y: 278, rot: 3, w: 108 },
-  Canada: { x: 1748, y: 368, rot: -3, w: 100 },
-  India: { x: 518, y: 238, rot: -4, w: 110 },
+/** Base card width for scrap clusters (px). */
+const CARD_BASE_W = 98
+const CARD_LAYOUT_H = 132
+
+/** Grid step — slightly smaller than card size so polaroids overlap like a scrap board. */
+const SCRAP_STEP_X = 150
+const SCRAP_STEP_Y = 120
+
+function pickGridCols(count: number): number {
+  if (count <= 1) return 1
+  if (count <= 4) return 2
+  if (count <= 9) return 3
+  return 4
 }
 
-function defaultPosition(index: number, cx: number, cy: number) {
-  const col = index % 4
-  const row = Math.floor(index / 4)
-  return {
-    x: cx - 180 + col * 120,
-    y: cy - 40 + row * 130,
-    rot: ((index * 137) % 9) - 4,
-    w: 96 + (index % 3) * 4,
-  }
+function scrapOffset(seed: string, salt: number, spread: number): number {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0
+  return ((Math.abs(h) + salt) % (spread * 2 + 1)) - spread
 }
 
+/** Tight, overlapping polaroid cluster around each region hub. */
 function layoutCountries(
   cards: CountryCardData[],
   cx: number,
   cy: number,
+  regionId: BoardRegionId,
 ): BoardCountryLayout[] {
+  const n = cards.length
+  if (n === 0) return []
+
+  const cols = pickGridCols(n)
+  const gridW = (cols - 1) * SCRAP_STEP_X + CARD_BASE_W
+  const { dx, dy } = GRID_OFFSET[regionId]
+  const originX = cx - gridW / 2 + dx
+  const originY = cy + dy
+
   return cards.map((card, i) => {
-    const pos = COUNTRY_POSITIONS[card.country] ?? defaultPosition(i, cx, cy)
+    const col = i % cols
+    const row = Math.floor(i / cols)
+    const rowStagger = row % 2 === 1 ? SCRAP_STEP_X * 0.38 : 0
     const [c1, c2] = countryPhotoColors(card.country)
-    return { card, ...pos, c1, c2 }
+    const w = CARD_BASE_W + scrapOffset(card.country, i, 6)
+    return {
+      card,
+      x: originX + col * SCRAP_STEP_X + rowStagger + scrapOffset(card.country, i * 3, 16),
+      y: originY + row * SCRAP_STEP_Y + scrapOffset(card.country, i * 5, 14),
+      rot: scrapOffset(card.country, i * 137, 9),
+      w,
+      z: i + 1,
+      c1,
+      c2,
+    }
   })
 }
 
+/** World-space center for camera when focusing a region (includes country cards). */
+export function getRegionFocusPoint(region: BoardRegionLayout): { x: number; y: number } {
+  if (region.countries.length === 0) {
+    return { x: region.cx, y: region.cy }
+  }
+
+  let minX = region.cx
+  let maxX = region.cx
+  let minY = region.cy
+  let maxY = region.cy
+
+  for (const c of region.countries) {
+    minX = Math.min(minX, c.x)
+    maxX = Math.max(maxX, c.x + c.w)
+    minY = Math.min(minY, c.y)
+    maxY = Math.max(maxY, c.y + CARD_LAYOUT_H)
+  }
+
+  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
+}
+
 export function buildBoardRegions(): BoardRegionLayout[] {
-  const order: PinboardRegion[] = ['EUROPE', 'ASIA', 'NORTH AMERICA']
-  return order.map((region) => {
-    const meta = REGION_META[region]
-    const cards = getCountryCardsForRegion(region)
+  return BOARD_REGION_DEFS.map((def) => {
+    const cards = def.dataRegion
+      ? getCountryCardsForRegion(def.dataRegion)
+      : []
     return {
-      region,
-      id: meta.id,
-      name: formatRegionLabel(region),
-      pin: meta.pin,
-      total: meta.total,
-      cx: meta.cx,
-      cy: meta.cy,
-      countries: layoutCountries(cards, meta.cx, meta.cy),
+      id: def.id,
+      name: def.name,
+      pin: def.pin,
+      total: REGION_COUNTRY_TOTALS[def.id as PinboardRegionTotalId],
+      cx: def.cx,
+      cy: def.cy,
+      dataRegion: def.dataRegion,
+      countries: layoutCountries(cards, def.cx, def.cy, def.id),
     }
   })
 }

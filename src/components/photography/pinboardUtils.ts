@@ -1,3 +1,4 @@
+import type { Theme } from '../../useTheme'
 import type { PinboardThemeTokens } from './pinboardThemes'
 
 export const BOARD_W = 2600
@@ -29,35 +30,72 @@ export function makePhotoSvg(w: number, h: number, c1: string, c2: string, v: nu
   return `<rect width="${w}" height="${h}" fill="${c1}"/><rect x="${w * 0.12}" y="${h * 0.12}" width="${w * 0.76}" height="${h * 0.76}" fill="${c2}" opacity=".35"/><rect x="${w * 0.3}" y="${h * 0.17}" width="${w * 0.16}" height="${h * 0.19}" fill="${c1}" opacity=".7" rx="1"/><rect x="${w * 0.56}" y="${h * 0.17}" width="${w * 0.16}" height="${h * 0.19}" fill="${c1}" opacity=".7" rx="1"/><rect x="${w * 0.1}" y="${h * 0.63}" width="${w * 0.8}" height="${h * 0.08}" fill="${c2}" opacity=".5"/>`
 }
 
-export function makeBoardTexture(theme: PinboardThemeTokens): string {
-  const c = document.createElement('canvas')
-  c.width = 300
-  c.height = 300
-  const ctx = c.getContext('2d')!
-  ctx.fillStyle = theme.boardBg
-  ctx.fillRect(0, 0, 300, 300)
-  ctx.strokeStyle = theme.gridA
+/** Cork board grid — references/pinboard_lighting.html drawBoard() */
+export function drawPinboardBoard(
+  ctx: CanvasRenderingContext2D,
+  boardBase: string,
+): void {
+  ctx.fillStyle = boardBase
+  ctx.fillRect(0, 0, BOARD_W, BOARD_H)
+  ctx.strokeStyle = 'rgba(0,0,0,0.055)'
   ctx.lineWidth = 1
-  for (let x = 0; x < 300; x += 6) {
+  for (let x = 0; x < BOARD_W; x += 6) {
     ctx.beginPath()
     ctx.moveTo(x, 0)
-    ctx.lineTo(x, 300)
+    ctx.lineTo(x, BOARD_H)
     ctx.stroke()
   }
-  for (let y = 0; y < 300; y += 6) {
+  for (let y = 0; y < BOARD_H; y += 6) {
     ctx.beginPath()
     ctx.moveTo(0, y)
-    ctx.lineTo(300, y)
+    ctx.lineTo(BOARD_W, y)
     ctx.stroke()
   }
-  ctx.strokeStyle = theme.gridB
-  for (let i = -300; i < 600; i += 12) {
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)'
+  for (let i = -BOARD_H; i < BOARD_W + BOARD_H; i += 12) {
     ctx.beginPath()
     ctx.moveTo(i, 0)
-    ctx.lineTo(i + 300, 300)
+    ctx.lineTo(i + BOARD_H, BOARD_H)
     ctx.stroke()
   }
-  return c.toDataURL()
+}
+
+/** Animated viewport light — references/pinboard_lighting.html animateLight() */
+export function drawPinboardLightOverlay(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  theme: Theme,
+  tokens: PinboardThemeTokens,
+  timeSec: number,
+): void {
+  const { light } = tokens
+  const lxBase = width * light.x
+  const lyBase = height * light.y
+
+  ctx.clearRect(0, 0, width, height)
+
+  if (theme === 'light') {
+    const jx = lxBase + Math.sin(timeSec * 0.18) * 6
+    const jy = lyBase + Math.cos(timeSec * 0.13) * 3
+    const grad = ctx.createRadialGradient(jx, jy, 0, jx, jy, light.r)
+    grad.addColorStop(0, light.inner)
+    grad.addColorStop(1, light.outer)
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, width, height)
+    return
+  }
+
+  const flicker = 1 + Math.sin(timeSec * 7.3) * 0.012 + Math.sin(timeSec * 13.1) * 0.008
+  const lx = lxBase + Math.sin(timeSec * 0.9) * 4
+  const ly = lyBase + Math.sin(timeSec * 1.1) * 3
+  const r = light.r * flicker
+  const inner = light.inner.replace(/[\d.]+\)$/, `${(0.18 * flicker).toFixed(3)})`)
+  const grad = ctx.createRadialGradient(lx, ly, 0, lx, ly, r)
+  grad.addColorStop(0, inner)
+  grad.addColorStop(1, light.outer)
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, width, height)
 }
 
 export function clamp(v: number, lo: number, hi: number): number {
