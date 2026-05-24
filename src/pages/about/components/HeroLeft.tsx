@@ -31,10 +31,10 @@ const SOCIAL_LINKS = [
 ] as const
 
 const BIO = [
-  "ive been making stuff since i was 14 years old. from my own landscaping business to creating viral videos on tiktok to reselling random stuff online. ive tried or at least thought of attempting everything under the sun.",
+  "i've been making stuff since i was 14, from my own landscaping business to creating viral videos on tiktok to reselling random stuff online. it feels like i've tried, or at least thought about, everything under the sun.",
   'i learned how to code 4 years ago, and now im a software engineer in new york city.',
-  'right now im working on building things that are cool to me and maybe… will be cool to the world!',
-  'take a look around, you might find something you like :p',
+  'right now im working on building things that are cool to me, and maybe even cool to the world!',
+  'take a look around—you might find something you like :p',
 ] as const
 
 export function HeroLeft({ onNavigate }: HeroLeftProps) {
