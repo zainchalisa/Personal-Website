@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import photonLogo from './assets/logo-light.png'
 
-const PHOTON_FAVICON = '/photon/favicon-128.png'
 import PhotonPreviewDemo from './components/PhotonPreviewDemo'
 import styles from './PhotonPage.module.css'
 
@@ -11,17 +10,8 @@ export default function PhotonPage() {
   useEffect(() => {
     const prevTitle = document.title
     const prevDesc = document.querySelector('meta[name="description"]')?.getAttribute('content')
-    const iconLink = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
-    const prevIconHref = iconLink?.getAttribute('href') ?? null
-    const prevIconType = iconLink?.getAttribute('type') ?? null
     const html = document.documentElement
     const body = document.body
-
-    if (iconLink) {
-      iconLink.type = 'image/png'
-      iconLink.setAttribute('sizes', '128x128')
-      iconLink.href = PHOTON_FAVICON
-    }
 
     document.title = 'photon.'
     const meta = document.querySelector('meta[name="description"]')
@@ -40,13 +30,6 @@ export default function PhotonPage() {
     return () => {
       document.title = prevTitle
       if (meta && prevDesc) meta.setAttribute('content', prevDesc)
-      if (iconLink) {
-        if (prevIconHref) iconLink.setAttribute('href', prevIconHref)
-        else iconLink.removeAttribute('href')
-        if (prevIconType) iconLink.setAttribute('type', prevIconType)
-        else iconLink.setAttribute('type', 'image/svg+xml')
-        iconLink.removeAttribute('sizes')
-      }
       html.style.overflow = ''
       html.style.maxHeight = ''
       body.style.overflow = ''

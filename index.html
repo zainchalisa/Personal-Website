@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="icon"
+      href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌐</text></svg>'
+    />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -11,29 +14,13 @@
       name="description"
       content="Zain — software engineer in NYC. Projects and photography."
     />
-    <title>zain.</title>
+    <title>zain chalisa.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=Pixelify+Sans:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap"
       rel="stylesheet"
     />
-    <script>
-      (function () {
-        var path = (location.pathname || '').replace(/\/+$/, '') || '/'
-        if (path.toLowerCase() === '/photon') {
-          var icon = document.querySelector('link[rel="icon"]')
-          if (!icon) {
-            icon = document.createElement('link')
-            icon.rel = 'icon'
-            document.head.appendChild(icon)
-          }
-          icon.type = 'image/png'
-          icon.setAttribute('sizes', '128x128')
-          icon.href = '/photon/favicon-128.png'
-        }
-      })()
-    </script>
     <script>
       (function () {
         try {
