@@ -207,7 +207,9 @@
   border: 2px solid var(--border-px);
   border-radius: 3px;
   box-shadow: 3px 3px 0 var(--border-px);
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  text-decoration: none;
   color: inherit;
   overflow: hidden;
   opacity: 0;
@@ -218,10 +220,33 @@
     box-shadow 0.12s ease;
 }
 
+.statusBar:hover {
+  transform: translate(-2px, -2px);
+  box-shadow:
+    5px 5px 0 var(--border-px),
+    0 6px 14px rgba(104, 136, 248, 0.18);
+}
+
+.statusBar:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--border-px);
+}
+
+.statusBar:focus-visible {
+  outline: 2px solid #6888f8;
+  outline-offset: 2px;
+}
+
 :root[data-theme='dark'] .statusBar {
   background: #ffffff;
   border-color: var(--border-px);
   box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme='dark'] .statusBar:hover {
+  box-shadow:
+    5px 5px 0 rgba(0, 0, 0, 0.35),
+    0 6px 14px rgba(104, 136, 248, 0.22);
 }
 
 /* Photon dark-mode accent blue (#6888f8) */
@@ -248,8 +273,34 @@
   }
 }
 
+.statusBar:hover .statusDot {
+  animation: photonDotPulseFast 1s ease-in-out infinite;
+}
+
+@keyframes photonDotPulseFast {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(104, 136, 248, 0.55);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(0.82);
+    box-shadow: 0 0 10px 4px rgba(104, 136, 248, 0.65);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .statusDot {
+    animation: none;
+  }
+
+  .statusBar:hover {
+    transform: none;
+  }
+
+  .statusBar:hover .statusDot {
     animation: none;
   }
 }
@@ -264,5 +315,29 @@
   line-height: 1.35;
   color: #111;
   letter-spacing: -0.02em;
+}
+
+.statusMore {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.1rem 0 0.1rem 1.1rem;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #ffffff 42%);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: clamp(0.5rem, 0.85vw, 0.62rem);
+  line-height: 1.35;
+  color: #6888f8;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.statusBar:hover .statusMore,
+.statusBar:focus-visible .statusMore {
+  opacity: 1;
 }
 

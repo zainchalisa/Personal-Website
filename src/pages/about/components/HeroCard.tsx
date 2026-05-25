@@ -135,12 +135,19 @@ export function HeroCard({ theme }: HeroCardProps) {
             decoding="async"
           />
         </div>
-        <div className={styles.statusBar} role="status">
+        <a
+          className={styles.statusBar}
+          href="/photon"
+          aria-label="Learn more about Photon, a Mac app for your memories"
+        >
           <span className={styles.statusDot} aria-hidden="true" />
           <span className={styles.statusText}>
             recently built photon, an app to help find your memories!
           </span>
-        </div>
+          <span className={styles.statusMore} aria-hidden="true">
+            check it out →
+          </span>
+        </a>
       </div>
     </div>
   )
