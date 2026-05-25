@@ -68,6 +68,7 @@ export function drawPinboardLightOverlay(
   theme: Theme,
   tokens: PinboardThemeTokens,
   timeSec: number,
+  lightBoost = 1,
 ): void {
   const { light } = tokens
   const lxBase = width * light.x
@@ -90,7 +91,8 @@ export function drawPinboardLightOverlay(
   const lx = lxBase + Math.sin(timeSec * 0.9) * 4
   const ly = lyBase + Math.sin(timeSec * 1.1) * 3
   const r = light.r * flicker
-  const inner = light.inner.replace(/[\d.]+\)$/, `${(0.18 * flicker).toFixed(3)})`)
+  const innerAlpha = 0.18 * flicker * Math.max(0, lightBoost)
+  const inner = light.inner.replace(/[\d.]+\)$/, `${innerAlpha.toFixed(3)})`)
   const grad = ctx.createRadialGradient(lx, ly, 0, lx, ly, r)
   grad.addColorStop(0, inner)
   grad.addColorStop(1, light.outer)

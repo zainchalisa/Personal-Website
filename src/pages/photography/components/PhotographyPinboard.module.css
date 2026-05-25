@@ -58,22 +58,41 @@
   z-index: 1;
 }
 
+/* Shared smooth easing — opacity + transform only for GPU compositing */
+.boardEntrance,
+.regionNavEntrance,
+.clusterLabelEntrance,
+.hudEntrance,
+.cardEntrance,
+.stringLine,
+.stringHub {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .stringLine {
-  transition: opacity 400ms ease-out;
+  transition-property: opacity;
+  transition-duration: 650ms;
 }
 
 .stringHub {
-  transition: opacity 300ms ease-out;
+  transition-property: opacity;
+  transition-duration: 520ms;
 }
 
 .boardEntrance {
-  transition: opacity 400ms ease-out;
+  transition-property: opacity;
+  transition-duration: 900ms;
+}
+
+.frameEntrance {
+  transition:
+    opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 400ms ease;
 }
 
 .regionNavEntrance {
-  transition:
-    opacity 400ms ease-out,
-    transform 400ms ease-out;
+  transition-property: opacity, transform;
+  transition-duration: 820ms;
 }
 
 .cardShell {
@@ -90,9 +109,8 @@
 }
 
 .cardEntrance {
-  transition:
-    opacity 350ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-property: opacity, transform;
+  transition-duration: 720ms;
 }
 
 .cardEntrance.cardFloatActive {
@@ -104,11 +122,11 @@
 
 @keyframes cardFloat {
   from {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    transform: translateY(-3px);
+    transform: translate3d(0, -3px, 0);
   }
 }
 
@@ -123,15 +141,13 @@
 }
 
 .clusterLabelEntrance {
-  transition:
-    opacity 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-property: opacity, transform;
+  transition-duration: 680ms;
 }
 
 .hudEntrance {
-  transition:
-    opacity 300ms ease-out,
-    transform 300ms ease-out;
+  transition-property: opacity, transform;
+  transition-duration: 750ms;
 }
 
 .pin {
@@ -363,11 +379,11 @@
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(8, 5, 2, 0.85);
+  background: rgba(6, 4, 2, 0.9);
   z-index: 500;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s;
+  transition: opacity 380ms cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -388,7 +404,20 @@
   flex-direction: column;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  border: 2px solid var(--ss-border, rgba(255, 255, 255, 0.12));
+  box-shadow:
+    0 28px 72px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 235, 200, 0.08);
+  opacity: 0;
+  transform: translate3d(0, 1rem, 0) scale(0.97);
+  transition:
+    opacity 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.overlayOpen .slideshow {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
 }
 
 .ssImgWrap {
@@ -398,7 +427,7 @@
   max-height: min(52vh, 400px);
   overflow: hidden;
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--ss-img-bg, rgba(0, 0, 0, 0.12));
 }
 
 .ssImg {
@@ -413,9 +442,9 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(8, 5, 2, 0.5);
-  border: none;
-  color: #f1efe8;
+  background: var(--ss-control-bg, rgba(26, 18, 8, 0.58));
+  border: 1px solid rgba(255, 240, 220, 0.14);
+  color: var(--ss-control-icon, #f5f0e4);
   width: 42px;
   height: 42px;
   cursor: pointer;
@@ -423,6 +452,8 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease;
 }
 
 .ssPrev {
@@ -435,14 +466,14 @@
 
 .ssPrev:hover,
 .ssNext:hover {
-  background: rgba(8, 5, 2, 0.88);
+  background: var(--ss-control-hover-bg, rgba(26, 18, 8, 0.88));
 }
 
 .ssPrev svg,
 .ssNext svg {
   width: 18px;
   height: 18px;
-  stroke: #f1efe8;
+  stroke: currentColor;
   stroke-width: 2;
   fill: none;
   stroke-linecap: round;
@@ -507,8 +538,9 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(8, 5, 2, 0.5);
-  border: none;
+  background: var(--ss-control-bg, rgba(26, 18, 8, 0.58));
+  border: 1px solid rgba(255, 240, 220, 0.14);
+  color: var(--ss-control-icon, #f5f0e4);
   width: 36px;
   height: 36px;
   cursor: pointer;
@@ -517,17 +549,45 @@
   justify-content: center;
   border-radius: 2px;
   z-index: 3;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease;
 }
 
 .ssClose:hover {
-  background: rgba(8, 5, 2, 0.88);
+  background: var(--ss-control-hover-bg, rgba(26, 18, 8, 0.88));
 }
 
 .ssClose svg {
   width: 14px;
   height: 14px;
-  stroke: #f1efe8;
+  stroke: currentColor;
   stroke-width: 2;
   fill: none;
   stroke-linecap: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boardEntrance,
+  .frameEntrance,
+  .regionNavEntrance,
+  .clusterLabelEntrance,
+  .hudEntrance,
+  .cardEntrance,
+  .stringLine,
+  .stringHub {
+    transition-duration: 0.01ms !important;
+  }
+
+  .cardEntrance.cardFloatActive {
+    animation: none;
+  }
+
+  .overlay,
+  .slideshow {
+    transition-duration: 0.01ms !important;
+  }
+
+  .overlayOpen .slideshow {
+    transform: none;
+  }
 }

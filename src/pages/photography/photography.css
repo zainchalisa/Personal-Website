@@ -36,6 +36,16 @@
   --photo-lightbox-bg: rgba(250, 248, 244, 0.97);
 }
 
+@keyframes photographyStageIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .photography-stage {
   position: absolute;
   inset: 0;
@@ -43,6 +53,14 @@
   min-width: 0;
   width: 100%;
   overflow: hidden;
+  animation: photographyStageIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photography-stage {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .photography-toolbar {
@@ -190,16 +208,22 @@
   padding: 1.25rem 1.5rem 2rem;
   background: var(--photo-lightbox-bg);
   backdrop-filter: blur(12px);
-  transform: scale(0.985);
+  transform: scale(0.98);
   opacity: 0;
   transition:
-    transform 0.22s ease-out,
-    opacity 0.22s ease-out;
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.36s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .photography-lightbox--open {
   transform: scale(1);
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photography-lightbox {
+    transition-duration: 0.01ms;
+  }
 }
 
 .photography-lightbox-header {

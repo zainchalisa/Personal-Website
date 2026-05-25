@@ -13,7 +13,7 @@ export function Hero({ onNavigate, theme }: HeroProps) {
   return (
     <section className={styles.hero}>
       <HeroLeft onNavigate={onNavigate} />
-      <div className={`${styles.heroCardWrap} ${styles.heroEnter} ${styles.heroEnterCard}`}>
+      <div className={`${styles.heroCardWrap} ${styles.heroReveal} ${styles.heroRevealCard}`}>
         <HeroCard theme={theme} />
       </div>
     </section>

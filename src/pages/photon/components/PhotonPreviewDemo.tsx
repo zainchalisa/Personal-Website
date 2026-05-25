@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import babyImg5964 from '../assets/baby_photos/web/IMG_5964.jpg'
-import babyImg8908 from '../assets/baby_photos/web/IMG_8908.jpg'
-import babyImg8909 from '../assets/baby_photos/web/IMG_8909.jpg'
-import babyImg8911 from '../assets/baby_photos/web/IMG_8911.jpg'
-import englandImg0294 from '../assets/family trip to england/web/IMG_0294.jpg'
+import weddingDanceFloor1 from '../assets/wedding photos - stock/web/dance floor 1.jpg'
+import weddingDanceFloor2 from '../assets/wedding photos - stock/web/dance floor 2.jpg'
+import weddingDanceFloor3 from '../assets/wedding photos - stock/web/dance floor 3.jpg'
+import weddingDanceFloor4 from '../assets/wedding photos - stock/web/dance floor 4.jpg'
 import englandImg1607 from '../assets/family trip to england/web/IMG_1607.jpg'
 import englandImg8942 from '../assets/family trip to england/web/IMG_8942.jpg'
 import englandImg8080 from '../assets/family trip to england/web/IMG_8080.jpg'
@@ -13,23 +12,24 @@ import sunsetImg7293 from '../assets/california sunsets/web/IMG_7293.jpg'
 import sunsetImg7560 from '../assets/california sunsets/web/IMG_7560.jpg'
 import sunsetImg8470 from '../assets/california sunsets/web/IMG_8470-2.jpg'
 import sunsetImg8525 from '../assets/california sunsets/web/IMG_8525-Enhanced-NR.jpg'
-import momDadImg8840 from '../assets/mom&dad/web/IMG_8840_crop.jpg'
+import friendsImgE3OU from '../assets/friends haning out - stock/web/helena-lopes-e3OUQGT9bWU-unsplash.jpg'
+import friendsImgPGnq from '../assets/friends haning out - stock/web/helena-lopes-PGnqT0rXWLs-unsplash.jpg'
+import friendsImgDkGI from '../assets/friends haning out - stock/web/helena-lopes-DkGIAjlIJu0-unsplash.jpg'
 import redwoodImg6664 from '../assets/redwood forest/web/IMG_6664.jpg'
 import redwoodImg6698 from '../assets/redwood forest/web/IMG_6698.jpg'
 import redwoodImg6712 from '../assets/redwood forest/web/IMG_6712.jpg'
 import redwoodImg6731 from '../assets/redwood forest/web/IMG_6731-2.jpg'
 import styles from '../PhotonPage.module.css'
 
-const BABY_PHOTOS_IMAGES = [
-  babyImg8909,
-  babyImg8908,
-  babyImg8911,
-  babyImg5964,
+const WEDDING_PHOTOS_IMAGES = [
+  weddingDanceFloor1,
+  weddingDanceFloor2,
+  weddingDanceFloor3,
+  weddingDanceFloor4,
 ] as const
 
 const ENGLAND_TRIP_IMAGES = [
   englandImg8080,
-  englandImg0294,
   englandImg1607,
   englandImg8942,
   englandImg8860,
@@ -43,7 +43,11 @@ const CALIFORNIA_SUNSET_IMAGES = [
   sunsetImg8525,
 ] as const
 
-const MOM_DAD_IMAGES = [momDadImg8840] as const
+const FRIENDS_HANGING_OUT_IMAGES = [
+  friendsImgE3OU,
+  friendsImgPGnq,
+  friendsImgDkGI,
+] as const
 
 const REDWOOD_FOREST_IMAGES = [
   redwoodImg6698,
@@ -54,10 +58,10 @@ const REDWOOD_FOREST_IMAGES = [
 
 const DEMO_IMAGES_TO_PRELOAD = [
   ...REDWOOD_FOREST_IMAGES,
-  ...MOM_DAD_IMAGES,
+  ...FRIENDS_HANGING_OUT_IMAGES,
   ...CALIFORNIA_SUNSET_IMAGES,
   ...ENGLAND_TRIP_IMAGES,
-  ...BABY_PHOTOS_IMAGES,
+  ...WEDDING_PHOTOS_IMAGES,
 ] as const
 
 type SearchDemo = {
@@ -79,9 +83,9 @@ const SEARCH_DEMOS: SearchDemo[] = [
     images: REDWOOD_FOREST_IMAGES,
   },
   {
-    query: 'photo of mom and dad in 2008 at sarah\'s barbeque',
-    count: MOM_DAD_IMAGES.length,
-    images: MOM_DAD_IMAGES,
+    query: 'josh, andrew, and i hanging out at golden hour in LA',
+    count: FRIENDS_HANGING_OUT_IMAGES.length,
+    images: FRIENDS_HANGING_OUT_IMAGES,
   },
   {
     query: 'sunsets I pulled over for on the pch road trip in 2025',
@@ -89,9 +93,9 @@ const SEARCH_DEMOS: SearchDemo[] = [
     images: CALIFORNIA_SUNSET_IMAGES,
   },
   {
-    query: 'zain and arwa when they were little',
-    count: BABY_PHOTOS_IMAGES.length,
-    images: BABY_PHOTOS_IMAGES,
+    query: 'maria\'s wedding dance floor photos',
+    count: WEDDING_PHOTOS_IMAGES.length,
+    images: WEDDING_PHOTOS_IMAGES,
   },
 ]
 

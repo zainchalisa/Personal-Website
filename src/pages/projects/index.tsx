@@ -24,6 +24,7 @@ import decoRocksUrl from './assets/environment/volcano_pack_70.png'
 import decoRockUrl from './assets/environment/volcano_pack_71.png'
 import portalGifUrl from './assets/portals/portal_pixel_art_by_fabian8bit_dfalvdy-ezgif.com-gif-maker.gif'
 import '@fontsource/press-start-2p/latin-400.css'
+import { SceneBackground, type SceneBackgroundHandle } from './SceneBackground'
 import styles from './ProjectsGame.module.css'
 
 type CharacterFrames = {
@@ -707,6 +708,7 @@ function persistGameSnapshot(
 export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
   const { themeTransition } = useTheme()
   const wrapRef = useRef<HTMLDivElement>(null)
+  const sceneBgRef = useRef<SceneBackgroundHandle>(null)
   const bgCanvasRef = useRef<HTMLCanvasElement>(null)
   const fgCanvasRef = useRef<HTMLCanvasElement>(null)
   const portalLayerRef = useRef<HTMLDivElement>(null)
@@ -864,6 +866,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       let floorTiles: FloorTiles
       let platformDecorations: PlatformDecoration[]
       let sceneBackgrounds: SceneBackgrounds
+      let sceneDomBg = false
       try {
         const [gameArt, tiles, floors, decorations, backgrounds] = await Promise.all([
           getGameArt(),
@@ -878,6 +881,8 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         floorTiles = floors
         platformDecorations = decorations
         sceneBackgrounds = backgrounds
+        sceneDomBg =
+          sceneBackgrounds.light.naturalWidth > 0 && sceneBackgrounds.dark.naturalWidth > 0
       } catch (e) {
         console.warn('[ProjectsGame] game art failed:', e)
         return
@@ -980,6 +985,10 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
 
     function clearBgCanvas() {
       syncPageBg()
+      if (sceneDomBg) {
+        c.clearRect(0, 0, W, H)
+        return
+      }
       c.fillStyle = cachedPageBg
       c.fillRect(0, 0, W, H)
     }
@@ -1439,6 +1448,8 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     }
 
     function drawBg(pal: Palette) {
+      if (sceneDomBg) return
+
       const isDark = themeRef.current === 'dark'
       const sceneBg = isDark ? sceneBackgrounds.dark : sceneBackgrounds.light
 
@@ -1829,10 +1840,11 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
 
     function update() {
       tick++
-      lavaGlowBoostRef.current = getLavaGlowBoost(
-        themeRef.current,
-        themeTransitionRef.current,
-      )
+      const sceneNight = sceneBgRef.current?.getNightProgress()
+      lavaGlowBoostRef.current =
+        sceneNight !== undefined
+          ? sceneNight
+          : getLavaGlowBoost(themeRef.current, themeTransitionRef.current)
       const keys = keysRef.current
       if (player.state === 'normal') {
         if (keys.ArrowLeft || keys.KeyA) {
@@ -1995,6 +2007,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       const pal = getPalette(themeRef.current)
       const isDark = themeRef.current === 'dark'
       update()
+      sceneBgRef.current?.setScroll(camX * 0.28)
       clearBgCanvas()
       drawBg(pal)
       drawFloor()
@@ -2060,6 +2073,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         to close
       </h2>
       <div ref={wrapRef} className={styles.wrap} role="application" aria-label="Projects mini game">
+        <SceneBackground ref={sceneBgRef} theme={theme} active={active} />
         <canvas ref={bgCanvasRef} className={styles.bgCanvas} />
         <div ref={portalLayerRef} className={styles.portalLayer} aria-hidden />
         <canvas ref={fgCanvasRef} className={styles.fgCanvas} />

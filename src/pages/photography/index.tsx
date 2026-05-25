@@ -1,6 +1,7 @@
 import './photography.css'
 import { type ReactNode } from 'react'
 import PhotographyPinboard from './components/PhotographyPinboard'
+import { PhotographyThemeTransition } from './components/PhotographyThemeTransition'
 import { useTheme } from '../../hooks/useTheme'
 
 export type PhotographyPageProps = {
@@ -17,6 +18,7 @@ export default function PhotographyPage({ navSlot, active = true }: PhotographyP
 
       <div className="photography-stage relative min-h-0 flex-1">
         <PhotographyPinboard active={active} theme={theme} />
+        <PhotographyThemeTransition active={active} />
       </div>
     </div>
   )

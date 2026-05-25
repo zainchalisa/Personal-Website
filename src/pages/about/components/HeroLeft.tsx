@@ -40,24 +40,24 @@ const BIO = [
 export function HeroLeft({ onNavigate }: HeroLeftProps) {
   return (
     <div className={styles.heroLeft}>
-      <h1 className={`${styles.title} ${styles.heroEnter} ${styles.heroEnterTitle}`}>
+      <h1 className={`${styles.title} ${styles.heroReveal} ${styles.heroRevealTitle}`}>
         hi, i&apos;m zain!
       </h1>
-      <div className={`${styles.bio} ${styles.heroEnter} ${styles.heroEnterBio}`}>
+      <div className={styles.bio}>
         {BIO.map((paragraph, index) => (
           <p
             key={paragraph}
-            className={`${styles.subtitle}${index === 1 ? ` ${styles.subtitleEmphasis}` : ''}`}
+            className={`${styles.subtitle} ${styles.heroReveal} ${styles.heroRevealBio}${index === 1 ? ` ${styles.subtitleEmphasis}` : ''}`}
           >
             {paragraph}
           </p>
         ))}
       </div>
-      <div className={`${styles.pills} ${styles.heroEnter} ${styles.heroEnterPills}`}>
+      <div className={styles.pills}>
         {SOCIAL_LINKS.map(({ id, label, href, Icon, external }) => (
           <a
             key={id}
-            className={styles.pill}
+            className={`${styles.pill} ${styles.heroReveal} ${styles.heroRevealPill}`}
             href={href}
             {...(external
               ? { target: '_blank', rel: 'noopener noreferrer' }
@@ -69,13 +69,17 @@ export function HeroLeft({ onNavigate }: HeroLeftProps) {
           </a>
         ))}
       </div>
-      <div className={`${styles.ctas} ${styles.heroEnter} ${styles.heroEnterCtas}`}>
-        <button type="button" className={styles.ctaPrimary} onClick={() => onNavigate('projects')}>
+      <div className={styles.ctas}>
+        <button
+          type="button"
+          className={`${styles.ctaPrimary} ${styles.heroReveal} ${styles.heroRevealCta}`}
+          onClick={() => onNavigate('projects')}
+        >
           view projects →
         </button>
         <button
           type="button"
-          className={styles.ctaSecondary}
+          className={`${styles.ctaSecondary} ${styles.heroReveal} ${styles.heroRevealCta}`}
           onClick={() => onNavigate('photography')}
         >
           explore my photography →

@@ -14,6 +14,126 @@
   font-family: var(--font-pixel);
 }
 
+.sceneBg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sceneBgParallax {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 400%;
+  will-change: transform;
+}
+
+.sceneBgLight,
+.sceneBgDark {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: 0 0;
+  image-rendering: auto;
+}
+
+.sceneBgLight {
+  z-index: 1;
+}
+
+.sceneBgDark {
+  z-index: 2;
+}
+
+.sceneTwilight {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: linear-gradient(
+    to bottom,
+    #c4a0d8 0%,
+    #b88cc4 25%,
+    #d4847a 60%,
+    #e8906a 100%
+  );
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.sceneStars {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.sceneStar {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.2;
+  animation: sceneStarTwinkle ease-in-out infinite alternate;
+}
+
+@keyframes sceneStarTwinkle {
+  from {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.sceneMoon {
+  position: absolute;
+  z-index: 4;
+  border-radius: 50%;
+  pointer-events: none;
+  transform-origin: center center;
+  top: 10%;
+  right: 20%;
+  width: 36px;
+  height: 36px;
+  transform-origin: center center;
+  background: #e8e0cc;
+  box-shadow: 0 0 20px 6px rgba(232, 224, 204, 0.25);
+}
+
+.sceneLavaGlow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40%;
+  z-index: 4;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    rgba(180, 40, 20, 0.22) 0%,
+    rgba(140, 20, 60, 0.12) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.sceneLavaGlowPulse {
+  animation: lavaGlowPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes lavaGlowPulse {
+  from {
+    opacity: var(--glow-base, 1);
+  }
+  to {
+    opacity: calc(var(--glow-base, 1) * 1.4);
+  }
+}
+
 .bgCanvas,
 .fgCanvas {
   position: absolute;
@@ -26,13 +146,13 @@
 .portalLayer {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   overflow: hidden;
   pointer-events: none;
 }
 
 .bgCanvas {
-  z-index: 0;
+  z-index: 1;
 }
 
 .decoSprite {

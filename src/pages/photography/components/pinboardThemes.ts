@@ -32,12 +32,17 @@ export type PinboardThemeTokens = {
   hudText: string
   stringSt: string
   ssBg: string
+  ssBorder: string
+  ssImgBg: string
   ssName: string
   ssRegion: string
   ssCaption: string
   ssCounter: string
   ssDotActive: string
   ssDotInactive: string
+  ssControlBg: string
+  ssControlHoverBg: string
+  ssControlIcon: string
 }
 
 export const PINBOARD_THEMES: Record<Theme, PinboardThemeTokens> = {
@@ -69,12 +74,17 @@ export const PINBOARD_THEMES: Record<Theme, PinboardThemeTokens> = {
     hudText: '#f0ebe0',
     stringSt: 'rgba(140,80,20,0.22)',
     ssBg: '#FFFDF8',
+    ssBorder: 'rgba(42, 26, 8, 0.14)',
+    ssImgBg: 'rgba(26, 18, 8, 0.06)',
     ssName: '#1a1208',
-    ssRegion: '#9a8060',
-    ssCaption: '#5a4a30',
-    ssCounter: '#b4a888',
+    ssRegion: '#6a5840',
+    ssCaption: '#4a3a28',
+    ssCounter: '#8a7a60',
     ssDotActive: '#2a1a08',
-    ssDotInactive: '#d3c8b4',
+    ssDotInactive: '#c4b8a0',
+    ssControlBg: 'rgba(26, 18, 8, 0.52)',
+    ssControlHoverBg: 'rgba(26, 18, 8, 0.82)',
+    ssControlIcon: '#f5f0e4',
   },
   dark: {
     boardBase: '#1e1a14',
@@ -103,12 +113,17 @@ export const PINBOARD_THEMES: Record<Theme, PinboardThemeTokens> = {
     hudBg: '#1a1a2e',
     hudText: '#f0ebe0',
     stringSt: 'rgba(200,140,50,0.18)',
-    ssBg: '#1a1005',
-    ssName: '#F1EFE8',
-    ssRegion: 'rgba(220,190,130,0.55)',
-    ssCaption: 'rgba(220,200,160,0.65)',
-    ssCounter: 'rgba(180,160,110,0.4)',
-    ssDotActive: '#F1EFE8',
-    ssDotInactive: 'rgba(241,239,232,0.2)',
+    ssBg: '#F5F0E4',
+    ssBorder: 'rgba(184, 137, 42, 0.35)',
+    ssImgBg: 'rgba(26, 18, 8, 0.08)',
+    ssName: '#1a1208',
+    ssRegion: '#6a5840',
+    ssCaption: '#4a3a28',
+    ssCounter: '#7a6a50',
+    ssDotActive: '#2a1a08',
+    ssDotInactive: '#b8aa90',
+    ssControlBg: 'rgba(26, 18, 8, 0.58)',
+    ssControlHoverBg: 'rgba(26, 18, 8, 0.88)',
+    ssControlIcon: '#f5f0e4',
   },
 }

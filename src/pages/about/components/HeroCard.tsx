@@ -17,24 +17,70 @@ export function HeroCard({ theme }: HeroCardProps) {
     const card = cardRef.current
     if (!card) return
 
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    let rafId = 0
+    let hovering = false
+    let targetRotY = 0
+    let targetRotX = 0
+    let currentRotY = 0
+    let currentRotX = 0
+
+    const applyTransform = () => {
+      card.style.transform = `perspective(700px) rotateY(${currentRotY.toFixed(2)}deg) rotateX(${currentRotX.toFixed(2)}deg)`
+    }
+
+    const tick = () => {
+      currentRotY += (targetRotY - currentRotY) * 0.14
+      currentRotX += (targetRotX - currentRotX) * 0.14
+
+      const settled =
+        !hovering &&
+        Math.abs(currentRotY) < 0.04 &&
+        Math.abs(currentRotX) < 0.04 &&
+        Math.abs(targetRotY) < 0.04 &&
+        Math.abs(targetRotX) < 0.04
+
+      if (settled) {
+        currentRotY = 0
+        currentRotX = 0
+        card.style.transform = ''
+        rafId = 0
+        return
+      }
+
+      applyTransform()
+      rafId = requestAnimationFrame(tick)
+    }
+
+    const startLoop = () => {
+      if (!rafId) rafId = requestAnimationFrame(tick)
+    }
+
     const onMove = (e: MouseEvent) => {
       const rect = card.getBoundingClientRect()
       const cx = rect.left + rect.width / 2
       const cy = rect.top + rect.height / 2
       const dx = (e.clientX - cx) / (rect.width / 2)
       const dy = (e.clientY - cy) / (rect.height / 2)
-      const rotY = Math.max(-6, Math.min(6, dx * 6))
-      const rotX = Math.max(-6, Math.min(6, -dy * 6))
-      card.style.transform = `perspective(700px) rotateY(${rotY}deg) rotateX(${rotX}deg)`
+      targetRotY = Math.max(-6, Math.min(6, dx * 6))
+      targetRotX = Math.max(-6, Math.min(6, -dy * 6))
+      startLoop()
     }
 
     const onEnter = () => {
+      hovering = true
       card.addEventListener('mousemove', onMove)
+      startLoop()
     }
 
     const onLeave = () => {
+      hovering = false
       card.removeEventListener('mousemove', onMove)
-      card.style.transform = ''
+      targetRotY = 0
+      targetRotX = 0
+      startLoop()
     }
 
     card.addEventListener('mouseenter', onEnter)
@@ -44,6 +90,8 @@ export function HeroCard({ theme }: HeroCardProps) {
       card.removeEventListener('mouseenter', onEnter)
       card.removeEventListener('mouseleave', onLeave)
       card.removeEventListener('mousemove', onMove)
+      if (rafId) cancelAnimationFrame(rafId)
+      card.style.transform = ''
     }
   }, [])
 
@@ -87,19 +135,12 @@ export function HeroCard({ theme }: HeroCardProps) {
             decoding="async"
           />
         </div>
-        <a
-          className={styles.statusBar}
-          href="/photon"
-          aria-label="Learn more about Photon, a Mac app for your memories"
-        >
+        <div className={styles.statusBar} role="status">
           <span className={styles.statusDot} aria-hidden="true" />
           <span className={styles.statusText}>
             recently built photon, an app to help find your memories!
           </span>
-          <span className={styles.statusMore} aria-hidden="true">
-            check it out →
-          </span>
-        </a>
+        </div>
       </div>
     </div>
   )

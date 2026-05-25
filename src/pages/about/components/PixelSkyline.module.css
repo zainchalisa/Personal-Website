@@ -1,3 +1,23 @@
+@keyframes skylineFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes skylineRise {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, 0.75rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 .wrap {
   position: fixed;
   inset: 0;
@@ -6,19 +26,23 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  opacity: 0;
+  animation: skylineFadeIn 1.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .svg {
   position: absolute;
   bottom: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate3d(-50%, 0.75rem, 0);
   width: 100%;
   max-width: 100%;
   height: auto;
   max-height: 42vh;
   image-rendering: pixelated;
   overflow: hidden;
+  opacity: 0;
+  animation: skylineRise 1.15s cubic-bezier(0.16, 1, 0.3, 1) 0.06s forwards;
 }
 
 .farTrack,
@@ -86,6 +110,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .wrap,
+  .svg {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+
   .farTrack,
   .nearTrack {
     animation: none;
@@ -123,7 +154,9 @@
   display: none;
 }
 
-:root[data-theme='dark'] .windows {
+:root[data-theme='dark'] .windows,
+.about-transitioning .windows,
+:root[data-about-transitioning] .windows {
   display: block;
 }
 

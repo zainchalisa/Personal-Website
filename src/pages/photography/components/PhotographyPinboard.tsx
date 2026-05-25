@@ -6,7 +6,9 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
+import { useTheme } from '../../../hooks/useTheme'
 import type { Theme } from '../../../hooks/useTheme'
+import { getPhotographyLightBoost } from '../../../hooks/themeTransition'
 import {
   buildBoardRegions,
   getRegionFocusPoint,
@@ -28,13 +30,18 @@ import {
 } from './pinboardUtils'
 import styles from './PhotographyPinboard.module.css'
 
-const CAM_LERP = 0.09
-const FLY_DURATION_MS = 920
+const CAM_LERP = 0.11
+const FLY_DURATION_MS = 1180
 const TILT_RADIUS = 210
 const TILT_MAX = 9
 const LIFT_MAX = 7
-const CARD_ENTRANCE_MS = 350
-const STRING_DELAY_AFTER_CARD_MS = 80
+const TILT_LERP = 0.15
+const CARD_ENTRANCE_MS = 720
+const STRING_DELAY_AFTER_CARD_MS = 100
+const REGION_LABEL_BASE_DELAY = 280
+const STAGGER_REGION_MS = 68
+const CARD_BASE_GAP_MS = 300
+const STAGGER_CARD_MS = 62
 const PHOTO_ENTRANCE_KEY = 'zain-photo-entrance-v1'
 
 function prefersReducedMotion(): boolean {
@@ -62,8 +69,8 @@ function shouldSkipFullPhotoEntrance(): boolean {
   return hasSeenPhotoEntrance() || prefersReducedMotion()
 }
 
-function easeOutCubic(t: number): number {
-  return 1 - (1 - t) ** 3
+function easeOutQuint(t: number): number {
+  return 1 - (1 - t) ** 5
 }
 
 type FlyAnimation = {
@@ -102,6 +109,9 @@ type CardEl = {
   layout: BoardCountryLayout
   region: BoardRegionLayout
   el: HTMLButtonElement
+  tiltX: number
+  tiltY: number
+  lift: number
 }
 
 export default function PhotographyPinboard({
@@ -109,8 +119,14 @@ export default function PhotographyPinboard({
   theme = 'dark',
   onReadyChange,
 }: PhotographyPinboardProps) {
+  const { themeTransition } = useTheme()
+  const themeTransitionRef = useRef(themeTransition)
   const regions = useMemo(() => buildBoardRegions(), [])
   const th = PINBOARD_THEMES[theme]
+
+  useEffect(() => {
+    themeTransitionRef.current = themeTransition
+  }, [themeTransition])
 
   const frameRef = useRef<HTMLDivElement>(null)
   const worldRef = useRef<HTMLDivElement>(null)
@@ -168,18 +184,19 @@ export default function PhotographyPinboard({
   }, [sortedCards])
 
   const totalCards = sortedCards.length
-  const regionLabelBaseDelay = 400
+  const regionLabelBaseDelay = REGION_LABEL_BASE_DELAY
   const lastRegionLabelDelay =
-    regionLabelBaseDelay + Math.max(0, sortedRegions.length - 1) * 80
-  const cardBaseDelay = lastRegionLabelDelay + 400
-  const lastCardDelay = cardBaseDelay + totalCards * 80
+    regionLabelBaseDelay +
+    Math.max(0, sortedRegions.length - 1) * STAGGER_REGION_MS
+  const cardBaseDelay = lastRegionLabelDelay + CARD_BASE_GAP_MS
+  const lastCardDelay = cardBaseDelay + totalCards * STAGGER_CARD_MS
 
   const stringLineDelay = useCallback(
     (countryKey: string) => {
       const staggerIndex = cardStaggerIndex.get(countryKey) ?? 0
       return (
         cardBaseDelay +
-        staggerIndex * 80 +
+        staggerIndex * STAGGER_CARD_MS +
         CARD_ENTRANCE_MS +
         STRING_DELAY_AFTER_CARD_MS
       )
@@ -270,11 +287,11 @@ export default function PhotographyPinboard({
     const mountTimer = window.setTimeout(() => setMounted(true), 50)
     const entranceTimer = window.setTimeout(() => {
       entranceCompleteRef.current = true
-    }, lastCardDelay + 350)
+    }, lastCardDelay + CARD_ENTRANCE_MS)
     const floatTimer = window.setTimeout(() => {
       setFloating(true)
       markPhotoEntranceSeen()
-    }, lastCardDelay + 500)
+    }, lastCardDelay + CARD_ENTRANCE_MS + 260)
 
     return () => {
       if (legendTimer !== undefined) window.clearTimeout(legendTimer)
@@ -331,6 +348,7 @@ export default function PhotographyPinboard({
             theme,
             th,
             performance.now() / 1000,
+            getPhotographyLightBoost(themeTransitionRef.current, performance.now() / 1000),
           )
         }
       }
@@ -347,7 +365,7 @@ export default function PhotographyPinboard({
       const fly = flyRef.current
       if (fly) {
         const t = Math.min(1, (performance.now() - fly.startMs) / FLY_DURATION_MS)
-        const ease = easeOutCubic(t)
+        const ease = easeOutQuint(t)
         cam.x = fly.fromX + (fly.toX - fly.fromX) * ease
         cam.y = fly.fromY + (fly.toY - fly.fromY) * ease
         if (t >= 1) {
@@ -365,10 +383,14 @@ export default function PhotographyPinboard({
       }
 
       const cardShadow = th.cardShadow
-      const applyTilt = entranceCompleteRef.current
-      for (const { layout, el } of cardRefs.current) {
-        const c = layout
+      const applyTilt = entranceCompleteRef.current && !prefersReducedMotion()
+      for (const card of cardRefs.current) {
+        const c = card.layout
+        const { el } = card
         if (!applyTilt) {
+          card.tiltX = 0
+          card.tiltY = 0
+          card.lift = 0
           el.style.transform = `rotate(${c.rot}deg)`
           el.style.boxShadow = `3px 3px 0 ${cardShadow}`
           continue
@@ -377,11 +399,15 @@ export default function PhotographyPinboard({
         const dy = mouseRef.current.y - (c.y + 40)
         const dist = Math.sqrt(dx * dx + dy * dy)
         const inf = Math.max(0, 1 - dist / TILT_RADIUS)
-        const tx = (dy / Math.max(dist, 1)) * inf * TILT_MAX
-        const ty = (-dx / Math.max(dist, 1)) * inf * TILT_MAX
-        el.style.transform = `rotate(${c.rot}deg) perspective(500px) rotateX(${tx.toFixed(1)}deg) rotateY(${ty.toFixed(1)}deg) translateZ(${(inf * LIFT_MAX).toFixed(1)}px)`
-        const shadowOff = 3 + inf * 3
-        el.style.boxShadow = `${shadowOff.toFixed(0)}px ${shadowOff.toFixed(0)}px 0 ${cardShadow}`
+        const targetTx = (dy / Math.max(dist, 1)) * inf * TILT_MAX
+        const targetTy = (-dx / Math.max(dist, 1)) * inf * TILT_MAX
+        const targetLift = inf * LIFT_MAX
+        card.tiltX += (targetTx - card.tiltX) * TILT_LERP
+        card.tiltY += (targetTy - card.tiltY) * TILT_LERP
+        card.lift += (targetLift - card.lift) * TILT_LERP
+        el.style.transform = `rotate(${c.rot}deg) perspective(500px) rotateX(${card.tiltX.toFixed(2)}deg) rotateY(${card.tiltY.toFixed(2)}deg) translateZ(${card.lift.toFixed(2)}px)`
+        const shadowOff = 3 + card.lift * 0.45
+        el.style.boxShadow = `${shadowOff.toFixed(1)}px ${shadowOff.toFixed(1)}px 0 ${cardShadow}`
       }
 
       rafRef.current = requestAnimationFrame(tick)
@@ -489,7 +515,7 @@ export default function PhotographyPinboard({
       el: HTMLButtonElement | null,
     ) => {
       cardRefs.current = cardRefs.current.filter((c) => c.layout.card.country !== countryKey)
-      if (el) cardRefs.current.push({ layout, region, el })
+      if (el) cardRefs.current.push({ layout, region, el, tiltX: 0, tiltY: 0, lift: 0 })
     },
     [],
   )
@@ -519,8 +545,11 @@ export default function PhotographyPinboard({
     >
       <div
         ref={frameRef}
-        className={styles.frame}
-        style={{ backgroundColor: th.boardBase }}
+        className={`${styles.frame} ${styles.frameEntrance}`}
+        style={{
+          backgroundColor: th.boardBase,
+          opacity: mounted ? 1 : 0,
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -546,7 +575,7 @@ export default function PhotographyPinboard({
 
         {sortedRegions.map((r) => {
           const regionIndex = regionStaggerIndex.get(r.id) ?? 0
-          const regionDelay = regionLabelBaseDelay + regionIndex * 80
+          const regionDelay = regionLabelBaseDelay + regionIndex * STAGGER_REGION_MS
 
           return (
             <div
@@ -557,8 +586,8 @@ export default function PhotographyPinboard({
               top: r.cy - 20,
               opacity: mounted ? 1 : 0,
               transform: mounted
-                ? 'translateX(-50%) translateY(0) scale(1)'
-                : 'translateX(-50%) translateY(8px) scale(0.85)',
+                ? 'translate3d(-50%, 0, 0) scale(1)'
+                : 'translate3d(-50%, 0.65rem, 0) scale(0.9)',
               transitionDelay: `${regionDelay}ms`,
             }}
           >
@@ -600,7 +629,7 @@ export default function PhotographyPinboard({
                 ? `${c.card.cities.slice(0, 2).join(' · ')} · ${c.card.photoCount} photos`
                 : `${c.card.photoCount} photo${c.card.photoCount === 1 ? '' : 's'}`
             const staggerIndex = cardStaggerIndex.get(c.card.country) ?? 0
-            const cardDelay = cardBaseDelay + staggerIndex * 80
+            const cardDelay = cardBaseDelay + staggerIndex * STAGGER_CARD_MS
             const floatDuration = `${3 + (staggerIndex % 5) * 0.4}s`
             const floatDelay = `${(staggerIndex * 0.37) % 2}s`
 
@@ -623,7 +652,11 @@ export default function PhotographyPinboard({
                     opacity: mounted ? 1 : 0,
                     ...(floating
                       ? {}
-                      : { transform: `translateY(${mounted ? 0 : -30}px)` }),
+                      : {
+                          transform: mounted
+                            ? 'translate3d(0, 0, 0) scale(1)'
+                            : 'translate3d(0, -1.35rem, 0) scale(0.91)',
+                        }),
                     transitionDelay: `${cardDelay}ms`,
                   }}
                 >
@@ -760,9 +793,9 @@ export default function PhotographyPinboard({
           style={{
             opacity: mounted ? 1 : 0,
             transform: mounted
-              ? 'translateX(-50%) translateY(0)'
-              : 'translateX(-50%) translateY(16px)',
-            transitionDelay: `${lastCardDelay + 200}ms`,
+              ? 'translate3d(-50%, 0, 0)'
+              : 'translate3d(-50%, 0.85rem, 0)',
+            transitionDelay: `${lastCardDelay + 180}ms`,
           }}
         >
           <span>drag to explore · click a card</span>
@@ -773,8 +806,8 @@ export default function PhotographyPinboard({
         aria-label="Regions"
         style={{
           opacity: legendMounted ? 1 : 0,
-          transform: legendMounted ? 'translateX(0)' : 'translateX(40px)',
-          transitionDelay: '300ms',
+          transform: legendMounted ? 'translate3d(0, 0, 0)' : 'translate3d(1.25rem, 0, 0)',
+          transitionDelay: '220ms',
           backgroundColor: th.navBg,
           borderColor: th.navBorder,
         }}
@@ -856,7 +889,14 @@ export default function PhotographyPinboard({
         {slideshow ? (
           <div
             className={styles.slideshow}
-            style={{ background: th.ssBg }}
+            style={{
+              background: th.ssBg,
+              ['--ss-border' as string]: th.ssBorder,
+              ['--ss-img-bg' as string]: th.ssImgBg,
+              ['--ss-control-bg' as string]: th.ssControlBg,
+              ['--ss-control-hover-bg' as string]: th.ssControlHoverBg,
+              ['--ss-control-icon' as string]: th.ssControlIcon,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles.ssImgWrap}>
@@ -880,7 +920,11 @@ export default function PhotographyPinboard({
                 type="button"
                 className={styles.ssPrev}
                 aria-label="Previous photo"
-                style={{ opacity: slideIndex > 0 ? 1 : 0.3 }}
+                style={{
+                  opacity: slideIndex > 0 ? 1 : 0.35,
+                  color: th.ssControlIcon,
+                  background: th.ssControlBg,
+                }}
                 onClick={() => ssNav(-1)}
               >
                 <ChevronIcon dir="prev" />
@@ -890,8 +934,9 @@ export default function PhotographyPinboard({
                 className={styles.ssNext}
                 aria-label="Next photo"
                 style={{
-                  opacity:
-                    slideIndex < slideshow.photos.length - 1 ? 1 : 0.3,
+                  opacity: slideIndex < slideshow.photos.length - 1 ? 1 : 0.35,
+                  color: th.ssControlIcon,
+                  background: th.ssControlBg,
                 }}
                 onClick={() => ssNav(1)}
               >
@@ -901,6 +946,10 @@ export default function PhotographyPinboard({
                 type="button"
                 className={styles.ssClose}
                 aria-label="Close slideshow"
+                style={{
+                  color: th.ssControlIcon,
+                  background: th.ssControlBg,
+                }}
                 onClick={closeSlideshow}
               >
                 <CloseIcon />
