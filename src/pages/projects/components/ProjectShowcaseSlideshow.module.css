@@ -1,0 +1,225 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 10px;
+}
+
+.frame {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface-modal);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md, 8px);
+}
+
+.empty,
+.error {
+  font-family: var(--font-geist);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.stage {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.navBtn {
+  flex: 0 0 28px;
+  align-self: center;
+  width: 28px;
+  height: 44px;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md, 8px);
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 2px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.navBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent-amber) 14%, var(--color-surface-modal));
+  border-color: color-mix(in srgb, var(--color-accent-amber) 40%, var(--color-border-tertiary));
+  color: var(--color-text-primary);
+  box-shadow: 0 4px 14px var(--color-btn-hover-shadow);
+}
+
+.navBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.navBtnMobile {
+  display: none;
+}
+
+.viewport {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background-color: var(--color-surface-modal);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md, 8px);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+}
+
+.viewport:active {
+  cursor: grabbing;
+}
+
+.slidesStack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.slidesStackDragging .slideFrame {
+  transition-duration: 0ms;
+}
+
+.slidesStackLoading {
+  opacity: 0;
+}
+
+.slidesStackReady {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.slideFrame {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--carousel-crossfade-duration) ease;
+  pointer-events: none;
+}
+
+.slideFrameActive {
+  pointer-events: auto;
+}
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.footerSide {
+  flex: 0 0 28px;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--carousel-dot-inactive);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color var(--carousel-crossfade-duration) ease,
+    border-color var(--carousel-crossfade-duration) ease,
+    transform 0.15s ease;
+}
+
+.dot:hover {
+  border-color: color-mix(in srgb, var(--carousel-dot-active) 55%, var(--carousel-dot-inactive));
+  transform: scale(1.12);
+}
+
+.dotActive {
+  background-color: var(--carousel-dot-active);
+  border-color: var(--carousel-dot-active);
+}
+
+.dot:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--carousel-dot-active) 65%, transparent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .stage .navBtn {
+    display: none;
+  }
+
+  .navBtnMobile {
+    display: flex;
+  }
+
+  .footerSide {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slideFrame {
+    transition-duration: 0.01ms;
+  }
+
+  .dot {
+    transition-duration: 0.01ms;
+  }
+}
