@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Theme } from '../../hooks/useTheme'
 import { useTheme } from '../../hooks/useTheme'
 import { getLavaGlowBoost } from '../../hooks/themeTransition'
+import { debounce } from '../../lib/debounce'
+import { preloadAllProjectMedia, preloadProjectMedia } from '../../lib/preloadProjectAssets'
 import jumpFrame1Url from './assets/character/jump.png'
 import jumpFrame2Url from './assets/character/jump 2.png'
 import runFrame1Url from './assets/character/run.png'
@@ -25,7 +27,11 @@ import decoRockUrl from './assets/environment/volcano_pack_71.png'
 import portalGifUrl from './assets/portals/portal_pixel_art_by_fabian8bit_dfalvdy-ezgif.com-gif-maker.gif'
 import '@fontsource/press-start-2p/latin-400.css'
 import { SceneBackground, type SceneBackgroundHandle } from './SceneBackground'
+import { ProjectDetailModal } from './components/ProjectDetailModal'
+import type { PortfolioProject } from './projectTypes'
 import styles from './ProjectsGame.module.css'
+
+export { PROJECTS } from './projectsData'
 
 type CharacterFrames = {
   run1: HTMLImageElement
@@ -181,15 +187,6 @@ function ease(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
-export type ShowcaseProject = {
-  title: string
-  description: string
-  tags: readonly string[] | string[]
-  route: string
-  github: string
-  live: string
-}
-
 type GameProject = {
   name: string
   route: string
@@ -326,48 +323,18 @@ const CHAR_DRAW_H = 84
 const CHAR_FEET_TRIM = 12
 
 const FONT_PIXEL = '"Pixelify Sans"'
-const FONT_SILK = 'Silkscreen'
-const FONT_MONO = '"Geist Mono", ui-monospace, monospace'
-
-const TOOLTIP_BG = '#f0ebe0'
-const TOOLTIP_BORDER = '#b8892a'
-const TOOLTIP_TITLE = '#1a1a2e'
-const TOOLTIP_ROUTE = '#5c5348'
-const TOOLTIP_CHAMFER = 6
+const PORTAL_LABEL_GAP = 12
 
 async function loadGameFonts(): Promise<void> {
   const loads = [
     ...[10, 11, 12, 14, 16, 18, 22, 28].map((px) =>
       document.fonts.load(`500 ${px}px ${FONT_PIXEL}`),
     ),
-    document.fonts.load('400 11px Silkscreen'),
     document.fonts.load('400 12px Silkscreen'),
-    document.fonts.load('400 9px "Geist Mono"'),
-    document.fonts.load('400 10px "Geist Mono"'),
     document.fonts.load('400 11px "Geist Mono"'),
+    document.fonts.load('500 11px "Geist Mono"'),
   ]
   await Promise.all(loads)
-}
-
-function traceChamferedRect(
-  fx: CanvasRenderingContext2D,
-  left: number,
-  top: number,
-  width: number,
-  height: number,
-  chamfer: number,
-) {
-  const c = chamfer
-  fx.beginPath()
-  fx.moveTo(left + c, top)
-  fx.lineTo(left + width - c, top)
-  fx.lineTo(left + width, top + c)
-  fx.lineTo(left + width, top + height - c)
-  fx.lineTo(left + width - c, top + height)
-  fx.lineTo(left + c, top + height)
-  fx.lineTo(left, top + height - c)
-  fx.lineTo(left, top + c)
-  fx.closePath()
 }
 
 const WELCOME_STORAGE_KEY = 'zain-projects-game-welcome-v1'
@@ -420,6 +387,17 @@ const GAME_KEY_CODES = new Set([
   'KeyC',
 ])
 
+const GAME_MOVEMENT_KEY_CODES = new Set([
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown',
+  'Space',
+  'KeyA',
+  'KeyD',
+  'KeyW',
+])
+
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
   const tag = target.tagName
@@ -434,14 +412,14 @@ function releaseNavFocus() {
   }
 }
 
-function toGameProjects(projects: readonly ShowcaseProject[]): GameProject[] {
+function toGameProjects(projects: readonly PortfolioProject[]): GameProject[] {
   return projects.map((p) => ({
     name: p.title,
-    route: p.route,
-    desc: p.description,
+    route: `/${p.slug}`,
+    desc: p.shortDescription,
     tags: [...p.tags],
-    github: p.github,
-    live: p.live,
+    github: p.githubUrl ?? '',
+    live: p.liveSiteUrl ?? '',
   }))
 }
 
@@ -594,8 +572,8 @@ function getPalette(theme: Theme): Palette {
   }
 }
 
-export type ProjectsGameProps = {
-  projects: readonly ShowcaseProject[]
+type ProjectsGameProps = {
+  projects: readonly PortfolioProject[]
   theme: Theme
   active: boolean
 }
@@ -722,10 +700,17 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
   const lavaGlowBoostRef = useRef(0)
   const gamePersistRef = useRef<PersistedGameSnapshot | null>(null)
   const projectsKeyRef = useRef('')
-  const [modal, setModal] = useState<GameProject | null>(null)
+  const preloadedPortalRouteRef = useRef<string | null>(null)
+  const [modal, setModal] = useState<PortfolioProject | null>(null)
   const [showWelcome, setShowWelcome] = useState(false)
+  const unlockedBySlugRef = useRef<Record<string, PortfolioProject>>({})
 
   const closeModal = useCallback(() => setModal(null), [])
+
+  const handleProjectResolved = useCallback((project: PortfolioProject) => {
+    unlockedBySlugRef.current[project.slug] = project
+    setModal(project)
+  }, [])
 
   const dismissWelcome = useCallback(() => {
     setShowWelcome(false)
@@ -736,7 +721,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     }
   }, [])
 
-  const projectsKey = projects.map((p) => p.route).join('|')
+  const projectsKey = projects.map((p) => p.slug).join('|')
 
   useEffect(() => {
     themeRef.current = theme
@@ -753,7 +738,13 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
   }, [projectsKey])
 
   useEffect(() => {
+    if (!active) return
+    preloadAllProjectMedia(projects)
+  }, [active, projects])
+
+  useEffect(() => {
     modalOpenRef.current = modal !== null
+    if (modal !== null) keysRef.current = {}
   }, [modal])
 
   useEffect(() => {
@@ -792,31 +783,31 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       if (isTypingTarget(e.target)) return
 
       releaseNavFocus()
+
+      if (modalOpenRef.current) {
+        if (e.code === 'KeyE' || e.code === 'KeyC') {
+          e.preventDefault()
+          closeModal()
+        } else if (GAME_MOVEMENT_KEY_CODES.has(e.code)) {
+          e.preventDefault()
+        }
+        return
+      }
+
       keysRef.current[e.code] = true
 
       if (e.code === 'KeyE') {
         e.preventDefault()
-        if (modalOpenRef.current) closeModal()
-        else tryOpenRef.current?.()
+        tryOpenRef.current?.()
         return
       }
 
       if (e.code === 'KeyC') {
         e.preventDefault()
-        if (modalOpenRef.current) closeModal()
         return
       }
 
-      if (
-        e.code === 'ArrowLeft' ||
-        e.code === 'ArrowRight' ||
-        e.code === 'ArrowUp' ||
-        e.code === 'ArrowDown' ||
-        e.code === 'Space' ||
-        e.code === 'KeyA' ||
-        e.code === 'KeyD' ||
-        e.code === 'KeyW'
-      ) {
+      if (GAME_MOVEMENT_KEY_CODES.has(e.code)) {
         e.preventDefault()
       }
     }
@@ -883,8 +874,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         sceneBackgrounds = backgrounds
         sceneDomBg =
           sceneBackgrounds.light.naturalWidth > 0 && sceneBackgrounds.dark.naturalWidth > 0
-      } catch (e) {
-        console.warn('[ProjectsGame] game art failed:', e)
+      } catch {
         return
       }
       if (ac.signal.aborted) return
@@ -914,6 +904,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     })
 
     const portalSprites: HTMLImageElement[] = []
+    const portalLabels: HTMLDivElement[] = []
     PORTALS.forEach((p) => {
       const img = document.createElement('img')
       img.src = portalGifUrl
@@ -922,12 +913,28 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       img.draggable = false
       portalLayer.appendChild(img)
       portalSprites.push(img)
+
+      const label = document.createElement('div')
+      label.className = styles.portalLabel
+      const labelBox = document.createElement('div')
+      labelBox.className = styles.portalLabelBox
+      const titleSpan = document.createElement('span')
+      titleSpan.className = styles.portalLabelTitle
+      titleSpan.textContent = p.proj.name
+      const routeSpan = document.createElement('span')
+      routeSpan.className = styles.portalLabelRoute
+      routeSpan.textContent = p.proj.route
+      labelBox.append(titleSpan, routeSpan)
+      label.appendChild(labelBox)
+      portalLayer.appendChild(label)
+      portalLabels.push(label)
     })
 
     let cachedPageBg = getPalette(themeRef.current).canvasBg
 
     let W = 0
     let H = 0
+    let canvasDpr = 1
     let groundY = GROUND_Y_DEFAULT
     let worldYOffset = 0
     let playerCreated = false
@@ -968,6 +975,19 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         .trim()
       cachedPageBg = domBg || getPalette(themeRef.current).canvasBg
     }
+    function applyCanvasDpr() {
+      canvasDpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2))
+      for (const [canvas, ctx] of [
+        [bgCanvasEl, c],
+        [fgCanvasEl, fg],
+      ] as const) {
+        canvas.width = Math.floor(W * canvasDpr)
+        canvas.height = Math.floor(H * canvasDpr)
+        ctx.setTransform(canvasDpr, 0, 0, canvasDpr, 0, 0)
+        ctx.imageSmoothingEnabled = false
+      }
+    }
+
     function resize() {
       W = Math.max(1, Math.floor(wrapEl.clientWidth))
       H = Math.max(1, Math.floor(wrapEl.offsetHeight))
@@ -976,10 +996,7 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       applyWorldVerticalShift(nextOffset)
       if (playerCreated) shiftDynamicWorld(dy)
       worldYOffset = nextOffset
-      bgCanvasEl.width = W
-      bgCanvasEl.height = H
-      fgCanvasEl.width = W
-      fgCanvasEl.height = H
+      applyCanvasDpr()
       syncPageBg()
     }
 
@@ -1179,7 +1196,12 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
     function tryOpen() {
       if (player.state !== 'normal') return
       const p = PORTALS.find((po) => po.active)
-      if (p) setModal(p.proj)
+      if (!p) return
+      const full = projects.find((proj) => `/${proj.slug}` === p.proj.route)
+      if (full) {
+        const cached = unlockedBySlugRef.current[full.slug]
+        setModal(cached ?? full)
+      }
     }
     tryOpenRef.current = tryOpen
 
@@ -1681,50 +1703,18 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       c.restore()
     }
 
-    function drawPortalLabel(
-      fx: CanvasRenderingContext2D,
-      cx: number,
-      portalTopY: number,
-      name: string,
-      route: string,
-      active: boolean,
-    ) {
-      const titleSize = 12
-      const routeSize = 9
-      const lineGap = 6
-      const padX = 12
-      const padY = 8
-
-      fx.font = `400 ${titleSize}px ${FONT_SILK}`
-      const titleW = fx.measureText(name).width
-      fx.font = `400 ${routeSize}px ${FONT_MONO}`
-      const routeW = fx.measureText(route).width
-      const boxW = Math.max(titleW, routeW) + padX * 2
-      const boxH = titleSize + routeSize + lineGap + padY * 2
-      const left = cx - boxW / 2
-      const top = portalTopY - boxH - 12
-
-      traceChamferedRect(fx, left, top, boxW, boxH, TOOLTIP_CHAMFER)
-      fx.fillStyle = TOOLTIP_BG
-      fx.fill()
-      fx.strokeStyle = TOOLTIP_BORDER
-      fx.lineWidth = active ? 2.5 : 2
-      fx.stroke()
-
-      fx.textAlign = 'center'
-      fx.textBaseline = 'middle'
-      const titleY = top + padY + titleSize / 2
-      const routeY = titleY + titleSize / 2 + lineGap + routeSize / 2
-
-      fx.font = `400 ${titleSize}px ${FONT_SILK}`
-      fx.fillStyle = TOOLTIP_TITLE
-      fx.fillText(name, cx, titleY)
-
-      fx.font = `400 ${routeSize}px ${FONT_MONO}`
-      fx.fillStyle = TOOLTIP_ROUTE
-      fx.fillText(route, cx, routeY)
-
-      fx.textBaseline = 'alphabetic'
+    function syncPortalLabels() {
+      const drawCam = Math.round(camX)
+      PORTALS.forEach((p, i) => {
+        const el = portalLabels[i]
+        if (!el) return
+        const cx = Math.round(p.x - drawCam)
+        const anchorY = Math.round(p.y - PORTAL_LABEL_GAP)
+        el.style.left = '0'
+        el.style.top = '0'
+        el.style.transform = `translate3d(${cx}px, ${anchorY}px, 0) translate(-50%, -100%)`
+        el.dataset.active = p.active ? 'true' : 'false'
+      })
     }
 
     function syncDecorationSprites() {
@@ -1736,11 +1726,12 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         const centerX = plat.x + plat.w * d.anchorX
         const left = Math.round(centerX - drawCam - d.drawW / 2)
         const top = Math.round(plat.y - d.drawH + 2)
-        img.style.left = `${left}px`
-        img.style.top = `${top}px`
+        img.style.left = '0'
+        img.style.top = '0'
         img.style.width = `${d.drawW}px`
         img.style.height = `${d.drawH}px`
-        img.style.transform = d.flip ? 'scaleX(-1)' : ''
+        const flip = d.flip ? ' scaleX(-1)' : ''
+        img.style.transform = `translate3d(${left}px, ${top}px, 0)${flip}`
       })
     }
 
@@ -1813,29 +1804,13 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         if (!img) return
         const left = Math.round(p.x - drawCam - p.w / 2)
         const top = Math.round(p.y)
-        img.style.left = `${left}px`
-        img.style.top = `${top}px`
+        img.style.left = '0'
+        img.style.top = '0'
         img.style.width = `${p.w}px`
         img.style.height = `${p.h}px`
-        img.style.transform = ''
-        const prox = p.proximity
-        if (prox > 0.04) {
-          const pulseT = tick * 0.034 + i * 1.1
-          const pulse =
-            0.68 +
-            (Math.sin(pulseT) * 0.62 + Math.sin(pulseT * 0.55 + 0.5) * 0.38) * 0.28
-          const blur = 6 + prox * 14 * pulse
-          const alpha = 0.32 + prox * 0.4 * pulse
-          img.style.filter = `drop-shadow(0 0 ${blur}px rgba(104, 136, 248, ${alpha}))`
-        } else {
-          img.style.filter = ''
-        }
+        img.style.transform = `translate3d(${left}px, ${top}px, 0)`
+        img.style.filter = ''
       })
-    }
-
-    function drawPortalLabelOn(fx: CanvasRenderingContext2D, p: Portal) {
-      const cx = p.x - Math.round(camX)
-      drawPortalLabel(fx, cx, p.y, p.proj.name, p.proj.route, p.active)
     }
 
     function update() {
@@ -1990,6 +1965,11 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       if (nearAny) {
         const ap = PORTALS.find((p) => p.active)
         if (ap) {
+          if (preloadedPortalRouteRef.current !== ap.proj.route) {
+            preloadedPortalRouteRef.current = ap.proj.route
+            const nearby = projects.find((proj) => `/${proj.slug}` === ap.proj.route)
+            if (nearby && !nearby.isPasswordProtected) preloadProjectMedia(nearby)
+          }
           ehintEl.style.display = 'block'
           ehintEl.style.left = `${ap.x - Math.round(camX)}px`
           ehintEl.style.top = `${ap.y - ap.h - 20}px`
@@ -1997,13 +1977,17 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       } else ehintEl.style.display = 'none'
     }
 
-    const onResize = () => resize()
+    const onResize = debounce(() => resize(), 120)
     const onVisibility = () => {
       if (document.visibilityState === 'visible') resize()
     }
     const onViewTransitionEnd = () => resize()
 
     function loop() {
+      if (document.hidden) {
+        raf = requestAnimationFrame(loop)
+        return
+      }
       const pal = getPalette(themeRef.current)
       const isDark = themeRef.current === 'dark'
       update()
@@ -2014,9 +1998,9 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
       drawLavaBubbles()
       PLATS.forEach((pl) => drawPlatform(pl))
       drawPortalGlow(c)
-      PORTALS.forEach((p) => drawPortalLabelOn(c, p))
       syncDecorationSprites()
       syncPortalSprites()
+      syncPortalLabels()
 
       fg.clearRect(0, 0, W, H)
       player.trail.forEach((t) => {
@@ -2077,28 +2061,24 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
         <canvas ref={bgCanvasRef} className={styles.bgCanvas} />
         <div ref={portalLayerRef} className={styles.portalLayer} aria-hidden />
         <canvas ref={fgCanvasRef} className={styles.fgCanvas} />
-        <div className={styles.hint}>
-          {modal ? (
-            <span className={styles.hintRow}>C close</span>
-          ) : (
-            <>
-              <span className={styles.hintRow}>← → move</span>
-              <span className={styles.hintSep} aria-hidden="true">
-                ·
-              </span>
-              <span className={styles.hintRow}>↑ jump</span>
-              <span className={styles.hintSep} aria-hidden="true">
-                ·
-              </span>
-              <span className={styles.hintRow}>E open</span>
-            </>
-          )}
-        </div>
+        {!modal ? (
+          <div className={styles.hint}>
+            <span className={styles.hintRow}>← → move</span>
+            <span className={styles.hintSep} aria-hidden="true">
+              ·
+            </span>
+            <span className={styles.hintRow}>↑ jump</span>
+            <span className={styles.hintSep} aria-hidden="true">
+              ·
+            </span>
+            <span className={styles.hintRow}>E open</span>
+          </div>
+        ) : null}
         <div ref={ehintRef} className={styles.ehint}>
           press E to open
         </div>
         <div
-          className={`${styles.overlay} ${showWelcome || modal ? styles.open : ''}`}
+          className={`${styles.overlay} ${showWelcome || modal ? styles.open : ''} ${modal ? styles.overlayProject : ''}`}
           onClick={(e) => {
             if (e.target !== e.currentTarget) return
             if (modal) closeModal()
@@ -2121,32 +2101,12 @@ export function ProjectsGame({ projects, theme, active }: ProjectsGameProps) {
               </p>
               </div>
           ) : modal ? (
-            <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="pg-modal-title">
-              <button type="button" className={styles.close} onClick={closeModal} aria-label="Close">
-                ×
-              </button>
-              <div className={styles.mtag}>{modal.route}</div>
-              <div id="pg-modal-title" className={styles.mtitle}>
-                {modal.name}
-              </div>
-              <div className={styles.mdesc}>{modal.desc}</div>
-              <div className={styles.mtags}>
-                {modal.tags.map((t) => (
-                  <span key={t} className={styles.tag}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-              <div className={styles.links}>
-                <a className={`${styles.link} ${styles.linkGh}`} href={modal.github} target="_blank" rel="noreferrer">
-                  github ↗
-                </a>
-                <a className={`${styles.link} ${styles.linkLive}`} href={modal.live} target="_blank" rel="noreferrer">
-                  live site ↗
-                </a>
-              </div>
-              <p className={styles.modalDismiss}>press C to close</p>
-            </div>
+            <ProjectDetailModal
+              key={modal.slug}
+              project={modal}
+              onClose={closeModal}
+              onProjectResolved={handleProjectResolved}
+            />
           ) : null}
         </div>
       </div>
