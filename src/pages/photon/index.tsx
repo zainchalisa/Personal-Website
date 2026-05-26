@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import photonLogo from './assets/logo-light.png'
+import { assetUrl } from '../../lib/assetUrl'
 
 import PhotonPreviewDemo from './components/PhotonPreviewDemo'
 import styles from './PhotonPage.module.css'
@@ -41,7 +41,14 @@ export default function PhotonPage() {
     <div className={styles.page}>
       <div className={`${styles.inner} ${styles.innerHero}`}>
         <header className={styles.top}>
-          <img className={styles.logo} src={photonLogo} alt="" width={56} height={56} decoding="async" />
+          <img
+            className={styles.logo}
+            src={assetUrl('/photon/logo-light.png')}
+            alt=""
+            width={56}
+            height={56}
+            decoding="async"
+          />
           <a className={styles.wordmark} href="/">
             Photon
           </a>

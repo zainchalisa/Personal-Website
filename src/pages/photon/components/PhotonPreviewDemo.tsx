@@ -1,25 +1,37 @@
 import { useEffect, useState } from 'react'
-import weddingDanceFloor1 from '../assets/wedding photos - stock/web/dance floor 1.jpg'
-import weddingDanceFloor2 from '../assets/wedding photos - stock/web/dance floor 2.jpg'
-import weddingDanceFloor3 from '../assets/wedding photos - stock/web/dance floor 3.jpg'
-import weddingDanceFloor4 from '../assets/wedding photos - stock/web/dance floor 4.jpg'
-import englandImg1607 from '../assets/family trip to england/web/IMG_1607.jpg'
-import englandImg8942 from '../assets/family trip to england/web/IMG_8942.jpg'
-import englandImg8080 from '../assets/family trip to england/web/IMG_8080.jpg'
-import englandImg8860 from '../assets/family trip to england/web/IMG_8860.jpg'
-import sunsetImg7180 from '../assets/california sunsets/web/IMG_7180.jpg'
-import sunsetImg7293 from '../assets/california sunsets/web/IMG_7293.jpg'
-import sunsetImg7560 from '../assets/california sunsets/web/IMG_7560.jpg'
-import sunsetImg8470 from '../assets/california sunsets/web/IMG_8470-2.jpg'
-import sunsetImg8525 from '../assets/california sunsets/web/IMG_8525-Enhanced-NR.jpg'
-import friendsImgE3OU from '../assets/friends haning out - stock/web/helena-lopes-e3OUQGT9bWU-unsplash.jpg'
-import friendsImgPGnq from '../assets/friends haning out - stock/web/helena-lopes-PGnqT0rXWLs-unsplash.jpg'
-import friendsImgDkGI from '../assets/friends haning out - stock/web/helena-lopes-DkGIAjlIJu0-unsplash.jpg'
-import redwoodImg6664 from '../assets/redwood forest/web/IMG_6664.jpg'
-import redwoodImg6698 from '../assets/redwood forest/web/IMG_6698.jpg'
-import redwoodImg6712 from '../assets/redwood forest/web/IMG_6712.jpg'
-import redwoodImg6731 from '../assets/redwood forest/web/IMG_6731-2.jpg'
+import { assetUrl } from '../../../lib/assetUrl'
 import styles from '../PhotonPage.module.css'
+
+function photonAsset(relativePath: string): string {
+  return assetUrl(`/photon/${relativePath}`)
+}
+
+const weddingDanceFloor1 = photonAsset('wedding photos - stock/web/dance floor 1.jpg')
+const weddingDanceFloor2 = photonAsset('wedding photos - stock/web/dance floor 2.jpg')
+const weddingDanceFloor3 = photonAsset('wedding photos - stock/web/dance floor 3.jpg')
+const weddingDanceFloor4 = photonAsset('wedding photos - stock/web/dance floor 4.jpg')
+const englandImg1607 = photonAsset('family trip to england/web/IMG_1607.jpg')
+const englandImg8942 = photonAsset('family trip to england/web/IMG_8942.jpg')
+const englandImg8080 = photonAsset('family trip to england/web/IMG_8080.jpg')
+const englandImg8860 = photonAsset('family trip to england/web/IMG_8860.jpg')
+const sunsetImg7180 = photonAsset('california sunsets/web/IMG_7180.jpg')
+const sunsetImg7293 = photonAsset('california sunsets/web/IMG_7293.jpg')
+const sunsetImg7560 = photonAsset('california sunsets/web/IMG_7560.jpg')
+const sunsetImg8470 = photonAsset('california sunsets/web/IMG_8470-2.jpg')
+const sunsetImg8525 = photonAsset('california sunsets/web/IMG_8525-Enhanced-NR.jpg')
+const friendsImgE3OU = photonAsset(
+  'friends haning out - stock/web/helena-lopes-e3OUQGT9bWU-unsplash.jpg',
+)
+const friendsImgPGnq = photonAsset(
+  'friends haning out - stock/web/helena-lopes-PGnqT0rXWLs-unsplash.jpg',
+)
+const friendsImgDkGI = photonAsset(
+  'friends haning out - stock/web/helena-lopes-DkGIAjlIJu0-unsplash.jpg',
+)
+const redwoodImg6664 = photonAsset('redwood forest/web/IMG_6664.jpg')
+const redwoodImg6698 = photonAsset('redwood forest/web/IMG_6698.jpg')
+const redwoodImg6712 = photonAsset('redwood forest/web/IMG_6712.jpg')
+const redwoodImg6731 = photonAsset('redwood forest/web/IMG_6731-2.jpg')
 
 const WEDDING_PHOTOS_IMAGES = [
   weddingDanceFloor1,
