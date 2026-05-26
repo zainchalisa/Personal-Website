@@ -10,7 +10,20 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# Secrets and local env (never commit — set in Cloudflare Pages for production)
+.env
+.env.*
+!.env.example
+tripdog.project.json
 *.local
+
+# Cloudflare / tooling caches
+.wrangler/
+.dev.vars
+
+# Portfolio PDFs / large showcase files — hosted on Cloudflare Pages (see ASSET_HOSTING.md)
+src/pages/projects/assets/
 
 # Editor directories and files
 .vscode/*
