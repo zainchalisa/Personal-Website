@@ -452,7 +452,6 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
-  backdrop-filter: blur(6px);
   transition: background 0.15s ease;
 }
 
@@ -549,7 +548,6 @@
   justify-content: center;
   border-radius: 2px;
   z-index: 3;
-  backdrop-filter: blur(6px);
   transition: background 0.15s ease;
 }
 

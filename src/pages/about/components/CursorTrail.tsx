@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 import styles from './CursorTrail.module.css'
 
-const TRAIL_SIZES = [7, 6, 5, 4, 4, 3, 2]
-const TRAIL_OPACITIES = [0.55, 0.45, 0.38, 0.3, 0.24, 0.18, 0.12]
+const TRAIL_SIZES = [7, 5, 4, 3, 2]
+const TRAIL_OPACITIES = [0.55, 0.4, 0.3, 0.22, 0.14]
 const BURST_COLORS = [
   'var(--accent-y)',
   'var(--accent-b)',
@@ -47,7 +47,7 @@ export function CursorTrail() {
         positions[i] = { x: nextX, y: nextY }
         const el = trailRefs.current[i]
         if (el) {
-          el.style.transform = `translate(${nextX}px, ${nextY}px) translate(-50%, -50%)`
+          el.style.transform = `translate3d(${nextX}px, ${nextY}px, 0) translate(-50%, -50%)`
         }
       }
 

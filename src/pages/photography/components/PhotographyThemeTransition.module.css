@@ -25,7 +25,6 @@
     transparent 82%
   );
   mix-blend-mode: soft-light;
-  filter: blur(18px);
 }
 
 .lampSpark {
@@ -42,7 +41,6 @@
     transparent 70%
   );
   mix-blend-mode: soft-light;
-  filter: blur(6px);
 }
 
 .toDark .lampPool {
@@ -347,7 +345,6 @@
       transparent 65%
     );
   mix-blend-mode: soft-light;
-  filter: blur(10px);
 }
 
 .toLight .daylight {

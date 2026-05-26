@@ -19,6 +19,7 @@ import {
   type SlideshowTarget,
 } from './pinboardData'
 import { regionVisitedBarPercent } from './regionCountryTotals'
+import { debounce } from '../../../lib/debounce'
 import { PINBOARD_THEMES } from './pinboardThemes'
 import {
   BOARD_H,
@@ -81,7 +82,7 @@ type FlyAnimation = {
   startMs: number
 }
 
-export type PhotographyPinboardProps = {
+type PhotographyPinboardProps = {
   active?: boolean
   theme?: Theme
   onReadyChange?: (ready: boolean) => void
@@ -144,6 +145,7 @@ export default function PhotographyPinboard({
     cy: 0,
   })
   const rafRef = useRef(0)
+  const interactingRef = useRef(false)
   const flyRef = useRef<FlyAnimation | null>(null)
   const didInitialFlyRef = useRef(false)
 
@@ -329,10 +331,17 @@ export default function PhotographyPinboard({
   useEffect(() => {
     if (!active) return
     let raf = 0
-    const tick = () => {
+    let lastLightMs = 0
+    const LIGHT_INTERVAL_MS = 1000 / 30
+    const tick = (now: number) => {
       const lightCanvas = lightCanvasRef.current
       const frame = frameRef.current
-      if (lightCanvas && frame) {
+      if (
+        lightCanvas &&
+        frame &&
+        now - lastLightMs >= LIGHT_INTERVAL_MS
+      ) {
+        lastLightMs = now
         const w = frame.offsetWidth
         const h = frame.offsetHeight
         if (lightCanvas.width !== w || lightCanvas.height !== h) {
@@ -347,8 +356,8 @@ export default function PhotographyPinboard({
             lightCanvas.height,
             theme,
             th,
-            performance.now() / 1000,
-            getPhotographyLightBoost(themeTransitionRef.current, performance.now() / 1000),
+            now / 1000,
+            getPhotographyLightBoost(themeTransitionRef.current, now / 1000),
           )
         }
       }
@@ -379,11 +388,14 @@ export default function PhotographyPinboard({
       }
       const world = worldRef.current
       if (world) {
-        world.style.transform = `translate(${-Math.round(cam.x)}px,${-Math.round(cam.y)}px)`
+        world.style.transform = `translate3d(${-Math.round(cam.x)}px,${-Math.round(cam.y)}px,0)`
       }
 
       const cardShadow = th.cardShadow
-      const applyTilt = entranceCompleteRef.current && !prefersReducedMotion()
+      const applyTilt =
+        entranceCompleteRef.current &&
+        !prefersReducedMotion() &&
+        (interactingRef.current || dragRef.current.active)
       for (const card of cardRefs.current) {
         const c = card.layout
         const { el } = card
@@ -432,6 +444,7 @@ export default function PhotographyPinboard({
   const onPointerDown = useCallback(
     (e: ReactPointerEvent) => {
       if (e.button !== 0) return
+      interactingRef.current = true
       flyRef.current = null
       dragRef.current = {
         active: true,
@@ -461,6 +474,16 @@ export default function PhotographyPinboard({
   )
 
   const onPointerUp = useCallback(() => {
+    dragRef.current.active = false
+    interactingRef.current = false
+  }, [])
+
+  const onPointerEnter = useCallback(() => {
+    interactingRef.current = true
+  }, [])
+
+  const onPointerLeave = useCallback(() => {
+    interactingRef.current = false
     dragRef.current.active = false
   }, [])
 
@@ -522,11 +545,11 @@ export default function PhotographyPinboard({
 
   useEffect(() => {
     if (!active) return
-    const onResize = () => {
+    const onResize = debounce(() => {
       const cam = camRef.current
       cam.tX = clamp(cam.tX, 0, Math.max(0, BOARD_W - rw()))
       cam.tY = clamp(cam.tY, 0, Math.max(0, BOARD_H - rh()))
-    }
+    }, 120)
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [active, rw, rh])
@@ -554,6 +577,8 @@ export default function PhotographyPinboard({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
       >
         <div
           ref={worldRef}

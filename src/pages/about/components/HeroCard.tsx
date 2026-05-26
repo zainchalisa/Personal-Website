@@ -71,7 +71,7 @@ export function HeroCard({ theme }: HeroCardProps) {
 
     const onEnter = () => {
       hovering = true
-      card.addEventListener('mousemove', onMove)
+      card.addEventListener('mousemove', onMove, { passive: true })
       startLoop()
     }
 

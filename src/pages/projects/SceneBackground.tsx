@@ -17,7 +17,7 @@ import {
 } from './sceneDayNightTransition'
 import styles from './ProjectsGame.module.css'
 
-const STAR_COUNT = 55
+const STAR_COUNT = 36
 
 function starSize(): number {
   return Math.random() < 0.2 ? 2.5 : Math.random() < 0.5 ? 1.5 : 1
