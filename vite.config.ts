@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { handleTripdogUnlock } from './functions/_lib/tripdog'
+import { handleTripdogUnlock } from './api/_lib/tripdog'
 
 function readRequestBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {

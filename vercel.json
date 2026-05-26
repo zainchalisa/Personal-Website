@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/tripdog/unlock.ts": {
+      "includeFiles": "api/_lib/**"
+    }
+  },
   "rewrites": [
     { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
   ],

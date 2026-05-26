@@ -6,7 +6,7 @@
     "functions/api/**/*.ts",
     "api/**/*.ts"
   ],
-  "project": ["src/**/*.{ts,tsx}", "functions/**/*.ts", "public/**/*.js"],
+  "project": ["src/**/*.{ts,tsx}", "api/**/*.ts", "functions/**/*.ts", "public/**/*.js"],
   "ignoreDependencies": ["tailwindcss"],
   "ignoreFiles": ["functions/env.d.ts"]
 }
