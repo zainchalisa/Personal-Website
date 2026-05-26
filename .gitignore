@@ -7,28 +7,52 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies and build output
 node_modules
 dist
 dist-ssr
+*.tsbuildinfo
 
-# Secrets and local env (never commit — set in Cloudflare Pages for production)
+# Vite / tooling caches
+.vite/
+.eslintcache
+.turbo/
+.cache/
+coverage/
+
+# Vercel CLI (local project link — not for the repo)
+.vercel/
+
+# Secrets and local env (never commit — set in Vercel / Cloudflare for production)
 .env
 .env.*
 !.env.example
 tripdog.project.json
 *.local
 
-# Cloudflare / tooling caches
+# Cloudflare / Wrangler
 .wrangler/
 .dev.vars
 
-# Portfolio PDFs / large showcase files — hosted on Cloudflare Pages (see ASSET_HOSTING.md)
-src/pages/projects/assets/
+# Local ops notes (env, deploy, asset URLs) — not for the public repo
+ASSET_HOSTING.md
 
-# Editor directories and files
+# Projects page — large portfolio binaries only (game sprites stay tracked for Vite)
+src/pages/projects/assets/**/*.pdf
+src/pages/projects/assets/**/originals/**
+src/pages/projects/assets/environment/bg_volcano_[0-9].png
+
+# Credentials (never commit)
+*.pem
+*.p12
+credentials.json
+secrets.json
+
+# Editor / IDE
 .vscode/*
 !.vscode/extensions.json
 .idea
+.cursor/
 .DS_Store
 *.suo
 *.ntvs*

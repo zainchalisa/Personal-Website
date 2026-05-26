@@ -21,15 +21,24 @@ ok() {
 is_blocked_path() {
   case "$1" in
     .env.example) return 1 ;;
+    tripdog.project.example.json) return 1 ;;
     .env) return 0 ;;
     tripdog.project.json) return 0 ;;
+    ASSET_HOSTING.md) return 0 ;;
     .dev.vars) return 0 ;;
     dist/*) return 0 ;;
     node_modules/*) return 0 ;;
     .wrangler/*) return 0 ;;
+    .vercel/*) return 0 ;;
   esac
   case "$1" in
     .env.*) return 0 ;;
+    src/pages/projects/assets/environment/bg_volcano_*.png)
+      case "$1" in
+        */bg_volcano.png) return 1 ;;
+        *) return 0 ;;
+      esac
+      ;;
   esac
   return 1
 }
@@ -53,7 +62,8 @@ check_list() {
 
 errors=0
 git ls-files 2>/dev/null | check_list "tracked in git" || errors=1
-git diff --cached --name-only 2>/dev/null | check_list "staged for commit" || errors=1
+# Add/modify/copy/rename only — staged deletions of blocked paths are intentional
+git diff --cached --name-only --diff-filter=ACMR 2>/dev/null | check_list "staged for commit" || errors=1
 
 if [[ $errors -ne 0 ]]; then
   echo >&2
@@ -73,6 +83,10 @@ fi
 
 if git ls-files --error-unmatch tripdog.project.json >/dev/null 2>&1; then
   fail "tripdog.project.json is tracked — run: git rm --cached tripdog.project.json"
+fi
+
+if git ls-files --error-unmatch ASSET_HOSTING.md >/dev/null 2>&1; then
+  fail "ASSET_HOSTING.md is tracked — run: git rm --cached ASSET_HOSTING.md"
 fi
 
 if [[ -f .env ]] && grep -qE '^VITE_.*TRIPDOG|^VITE_TRIPDOG' .env 2>/dev/null; then
