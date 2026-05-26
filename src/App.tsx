@@ -4,7 +4,7 @@ import lanternOff from './assets/images/Lantern Off.png'
 import lanternOn from './assets/images/Lantern On.png'
 import lanternPlaceSfx from './assets/images/Lantern Placing (Nr. 1 _ Minecraft Sound) - Sound Effect for editing.mp3'
 import { AboutPage } from './pages/about'
-import { ProjectsGame, type ShowcaseProject } from './pages/projects'
+import { ProjectsGame, PROJECTS } from './pages/projects'
 import type { PageId } from './types'
 import { useTheme } from './hooks/useTheme'
 
@@ -37,52 +37,6 @@ function persistPage(page: PageId) {
     /* ignore */
   }
 }
-
-const PROJECTS: ShowcaseProject[] = [
-  {
-    title: 'Photon',
-    description:
-      'Find your photos, not filenames. No folders, no dates — just describe it the way you remember it.',
-    tags: ['swift', 'macos', 'ai'],
-    route: '/photon',
-    github: 'https://github.com/zainchalisa',
-    live: 'https://zainchalisa.com/photon',
-  },
-  {
-    title: 'SYNC',
-    description:
-      'Something you built that solves a real problem or just scratches your own itch.',
-    tags: ['python', 'ai'],
-    route: '/sync-app',
-    github: 'https://github.com/',
-    live: 'https://github.com/',
-  },
-  {
-    title: 'RU Cafe',
-    description: 'That weird thing you built at 2am that somehow actually works.',
-    tags: ['typescript'],
-    route: '/rutgers-cafe',
-    github: 'https://github.com/',
-    live: 'https://github.com/',
-  },
-  {
-    title: 'Face Neural Networks',
-    description:
-      'Built this when you were making videos. Maybe others can use it too.',
-    tags: ['api', 'automation'],
-    route: '/face-digit-neural-nets',
-    github: 'https://github.com/',
-    live: 'https://github.com/',
-  },
-  {
-    title: 'Trip Dog',
-    description: 'Small tools and pages you ship when inspiration hits.',
-    tags: ['next.js', 'design'],
-    route: '/super-secret-project',
-    github: 'https://github.com/',
-    live: 'https://github.com/',
-  },
-]
 
 function App() {
   const [page, setPageState] = useState<PageId>(readStoredPage)

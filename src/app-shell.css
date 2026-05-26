@@ -470,7 +470,8 @@ html.about-scroll .app {
   z-index: 0;
   border-radius: 50%;
   opacity: 0;
-  pointer-events: none;
+  /* Block passthrough to the photography pinboard under the nav */
+  pointer-events: auto;
   transform: scale(0.9);
 }
 

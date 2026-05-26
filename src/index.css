@@ -16,6 +16,7 @@
   --font-pixel: 'Pixelify Sans', sans-serif;
   --font-silk: 'Silkscreen', monospace;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-weight-heading: 600;
 
   --site-max: clamp(36rem, 92vw, 48rem);
   --site-pad-x: clamp(1rem, 4vw, 2rem);
@@ -36,11 +37,45 @@
   --color-background-primary: #ffffff;
   --color-background-secondary: #f6f6f6;
 
+  --color-surface-modal: var(--color-background-primary);
+  --color-backdrop: color-mix(
+    in srgb,
+    var(--color-background-secondary) 82%,
+    var(--color-text-primary) 8%
+  );
+
   --color-border-tertiary: #e8e8e8;
   --color-border-secondary: #cfcfcf;
 
   --border-radius-lg: 10px;
   --border-radius-md: 8px;
+
+  /* Project modal tech tags — tied to nav / lantern amber accent */
+  --color-accent-amber: var(--nav-active);
+  --color-tag-text: color-mix(in srgb, var(--color-accent-amber) 88%, var(--nav-logo-color));
+  --color-tag-bg: color-mix(
+    in srgb,
+    var(--color-accent-amber) 16%,
+    var(--color-background-primary)
+  );
+  --color-tag-border: color-mix(in srgb, var(--color-accent-amber) 32%, transparent);
+
+  --color-btn-accent-bg: var(--color-accent-amber);
+  --color-btn-accent-text: var(--nav-logo-color);
+  --color-btn-hover-shadow: color-mix(in srgb, var(--color-accent-amber) 40%, transparent);
+
+  --modal-backdrop-duration: 280ms;
+  --modal-enter-duration: 400ms;
+  --modal-enter-stagger: 100ms;
+  --modal-enter-complete: calc(var(--modal-enter-duration) + var(--modal-enter-stagger));
+  --modal-info-enter-x: -20px;
+  --modal-media-enter-y: 12px;
+  --modal-tag-stagger: 60ms;
+  --modal-tag-duration: 300ms;
+
+  --carousel-crossfade-duration: 250ms;
+  --carousel-dot-active: var(--color-accent-amber);
+  --carousel-dot-inactive: color-mix(in srgb, var(--color-text-tertiary) 70%, transparent);
 }
 
 :root[data-theme='dark'] {
@@ -53,11 +88,29 @@
   --color-background-primary: #0a0a0a;
   --color-background-secondary: #141414;
 
+  --color-surface-modal: var(--color-background-primary);
+  --color-backdrop: color-mix(in srgb, var(--color-background-primary) 58%, transparent);
+
   --color-border-tertiary: #262626;
   --color-border-secondary: #404040;
 
   --nav-active: #f0a832;
   --nav-logo-color: #fafafa;
+
+  --color-accent-amber: var(--nav-active);
+  --color-tag-text: var(--color-accent-amber);
+  --color-tag-bg: color-mix(in srgb, var(--color-accent-amber) 22%, transparent);
+  --color-tag-border: color-mix(in srgb, var(--color-accent-amber) 42%, transparent);
+
+  --color-btn-accent-bg: var(--color-accent-amber);
+  --color-btn-accent-text: color-mix(
+    in srgb,
+    var(--color-background-primary) 78%,
+    var(--color-text-primary) 8%
+  );
+  --color-btn-hover-shadow: color-mix(in srgb, var(--color-accent-amber) 48%, transparent);
+
+  --carousel-dot-inactive: color-mix(in srgb, var(--color-text-primary) 28%, transparent);
 }
 
 *,
