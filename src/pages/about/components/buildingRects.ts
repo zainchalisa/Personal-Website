@@ -1,7 +1,7 @@
 /** Stepped pixel building rects for SVG skyline layers */
 export type BuildingRect = { x: number; y: number; width: number; height: number }
 
-export function buildBuildingLayer(
+function buildBuildingLayer(
   cols: number,
   baseY: number,
   cellW: number,

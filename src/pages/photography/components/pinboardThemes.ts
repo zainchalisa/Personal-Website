@@ -1,7 +1,7 @@
 import type { Theme } from '../../../hooks/useTheme'
 
 /** Radial viewport light (from references/pinboard_lighting.html). */
-export type PinboardLightConfig = {
+type PinboardLightConfig = {
   x: number
   y: number
   r: number

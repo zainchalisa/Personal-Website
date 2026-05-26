@@ -18,8 +18,6 @@
  * Sources: UN M49 geoscheme, Facts Institute / World Population Review (2024–2026).
  */
 
-export const WORLD_COUNTRY_TOTAL = 195 as const
-
 export type PinboardRegionTotalId =
   | 'europe'
   | 'east-asia'

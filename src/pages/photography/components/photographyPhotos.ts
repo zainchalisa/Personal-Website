@@ -81,23 +81,23 @@ const RAW: { city: string; country: string; year: number; src: string | null }[]
   { city: 'Mumbai', country: 'India', year: 2022, src: null },
 ]
 
-export const PINBOARD_PHOTOS: PinboardPhoto[] = RAW.map((p, i) => ({
+const PINBOARD_PHOTOS: PinboardPhoto[] = RAW.map((p, i) => ({
   ...p,
   id: `${p.city.toLowerCase().replace(/\s+/g, '-')}-${i}`,
   region: REGION_BY_COUNTRY[p.country] ?? 'EUROPE',
 }))
 
-export const PINBOARD_REGIONS: PinboardRegion[] = ['NORTH AMERICA', 'EUROPE', 'ASIA']
+const PINBOARD_REGIONS: PinboardRegion[] = ['NORTH AMERICA', 'EUROPE', 'ASIA']
 
-export function displayCountryName(country: string): string {
+function displayCountryName(country: string): string {
   return COUNTRY_DISPLAY[country] ?? country
 }
 
-export function getPhotosByRegion(region: PinboardRegion): PinboardPhoto[] {
+function getPhotosByRegion(region: PinboardRegion): PinboardPhoto[] {
   return PINBOARD_PHOTOS.filter((p) => p.region === region)
 }
 
-export function getPhotosForCountry(country: string): PinboardPhoto[] {
+function getPhotosForCountry(country: string): PinboardPhoto[] {
   return PINBOARD_PHOTOS.filter((p) => p.country === country)
 }
 
@@ -113,7 +113,7 @@ function sortCountriesByRegion(countries: string[], region: PinboardRegion): str
   })
 }
 
-export function getCountriesByRegion(): Record<PinboardRegion, string[]> {
+function getCountriesByRegion(): Record<PinboardRegion, string[]> {
   const out = {} as Record<PinboardRegion, string[]>
   for (const region of PINBOARD_REGIONS) {
     const countries = [...new Set(getPhotosByRegion(region).map((p) => p.country))]

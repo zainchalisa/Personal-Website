@@ -1,21 +1,17 @@
 import './photography.css'
-import { type ReactNode } from 'react'
 import PhotographyPinboard from './components/PhotographyPinboard'
 import { PhotographyThemeTransition } from './components/PhotographyThemeTransition'
 import { useTheme } from '../../hooks/useTheme'
 
-export type PhotographyPageProps = {
-  navSlot?: ReactNode
+type PhotographyPageProps = {
   active?: boolean
 }
 
-export default function PhotographyPage({ navSlot, active = true }: PhotographyPageProps) {
+export default function PhotographyPage({ active = true }: PhotographyPageProps) {
   const { theme } = useTheme()
 
   return (
     <div className="photography-page" data-theme={theme}>
-      {navSlot ? <div className="relative z-30 shrink-0">{navSlot}</div> : null}
-
       <div className="photography-stage relative min-h-0 flex-1">
         <PhotographyPinboard active={active} theme={theme} />
         <PhotographyThemeTransition active={active} />

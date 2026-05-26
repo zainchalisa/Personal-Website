@@ -4,14 +4,8 @@ import {
   type PinboardPhoto,
   type PinboardRegion,
 } from './photographyPhotos'
-import {
-  REGION_COUNTRY_TOTALS,
-  WORLD_COUNTRY_TOTAL,
-  type PinboardRegionTotalId,
-} from './regionCountryTotals'
+import { REGION_COUNTRY_TOTALS, type PinboardRegionTotalId } from './regionCountryTotals'
 import { countryPhotoColors } from './pinboardUtils'
-
-export { WORLD_COUNTRY_TOTAL, REGION_COUNTRY_TOTALS }
 
 export type BoardRegionId =
   | 'europe'

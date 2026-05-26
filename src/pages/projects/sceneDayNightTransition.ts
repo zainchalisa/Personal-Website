@@ -1,17 +1,17 @@
 export const SCENE_TRANSITION_MS = 2600
 
-export function clamp(v: number, lo = 0, hi = 1) {
+function clamp(v: number, lo = 0, hi = 1) {
   return Math.max(lo, Math.min(hi, v))
 }
 
 /** Linear ramp from 0→1 between start and end timestamps */
-export function ramp(t: number, start: number, end: number) {
+function ramp(t: number, start: number, end: number) {
   if (start >= end) return t <= start ? 1 : 0
   return clamp((t - start) / (end - start))
 }
 
 /** Triangle: rises 0→1 from start to peak, falls 1→0 from peak to end */
-export function triangle(t: number, start: number, peak: number, end: number) {
+function triangle(t: number, start: number, peak: number, end: number) {
   if (t < start) return 0
   if (t < peak) return (t - start) / (peak - start)
   if (t < end) return 1 - (t - peak) / (end - peak)
@@ -27,7 +27,7 @@ export type SceneFrameState = {
   lavaGlowOpacity: number
 }
 
-export function applyFrameDayToNight(t: number): SceneFrameState {
+function applyFrameDayToNight(t: number): SceneFrameState {
   const moonOpacity = ramp(t, 0.55, 0.85)
   return {
     darkBgOpacity: ramp(t, 0.35, 0.8),
@@ -39,7 +39,7 @@ export function applyFrameDayToNight(t: number): SceneFrameState {
   }
 }
 
-export function applyFrameNightToDay(t: number): SceneFrameState {
+function applyFrameNightToDay(t: number): SceneFrameState {
   const moonOpacity = 1 - ramp(t, 0.1, 0.55)
   return {
     darkBgOpacity: 1 - ramp(t, 0.2, 0.65),
