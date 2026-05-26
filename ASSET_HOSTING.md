@@ -58,10 +58,15 @@ Each file must stay **below 25 MiB** (Cloudflare Pages per-file limit). Compress
 The public repo only has a **stub** in `projectsData.ts` (title emoji, year, empty tags, generic “password protected” line). Real copy and stack tags are **not** committed — they are loaded at runtime from the `TRIPDOG_PROJECT_JSON` environment variable (see `tripdog.project.example.json` for the shape).
 
 1. Copy `tripdog.project.example.json` → `tripdog.project.json` (gitignored), fill in your real description and tags.
-2. In `.env`, set `TRIPDOG_PASSWORD` and `TRIPDOG_PROJECT_JSON` (minified single-line JSON). **Never** use a `VITE_` prefix.
-3. For production, add both variables in the **Cloudflare Pages** dashboard for the **site** deployment (encrypted).
-4. Unlock: `POST /api/tripdog/unlock` returns project JSON once per password entry. Unlock state is kept **in memory only** for the current page visit — a full refresh locks Trip Dog again. **Failed** attempts are rate-limited in app code (5 per 15 minutes per IP per isolate) — see `functions/_lib/rateLimit.ts`, not a separate WAF config in this repo.
-5. Local dev: Vite proxies `/api/tripdog/unlock` via `vite.config.ts`; production uses `functions/api/tripdog/unlock`.
+2. In `.env`, set `TRIPDOG_UNLOCK_PASSWORD` (or `TRIPDOG_PASSWORD`) and `TRIPDOG_PROJECT_JSON` (minified single-line JSON). **Never** use a `VITE_` prefix.
+3. **Vercel (zainchalisa.com):** Project → Settings → Environment Variables → Production:
+   - `TRIPDOG_UNLOCK_PASSWORD` — server-only unlock password
+   - `TRIPDOG_PROJECT_JSON` — minified project payload (same shape as the example file)
+   Redeploy after adding or changing variables.
+4. **Cloudflare Pages** (if used): same values as `TRIPDOG_PASSWORD` + `TRIPDOG_PROJECT_JSON` on the site deployment.
+5. Unlock: `POST /api/tripdog/unlock` returns JSON (`{ success: true, project }` on success). Unlock state is **in memory only** for the page visit. Failed attempts are rate-limited (5 / 15 min per IP) — `functions/_lib/rateLimit.ts`.
+6. Routing: **Vercel** uses `api/tripdog/unlock.ts` (serverless). **Cloudflare** uses `functions/api/tripdog/unlock.ts`. `vercel.json` SPA rewrite excludes `/api/*` so the API is not served as `index.html`.
+7. Local dev: Vite proxies `/api/tripdog/unlock` via `vite.config.ts`.
 
 ### Test rate limiting
 
@@ -81,6 +86,22 @@ BASE_URL=https://your-site.example npm run test:rate-limit
 Expect HTTP `401` × 5, then `429` with `Retry-After` on the 6th attempt. You can also test in the UI: Projects → Trip Dog portal → enter wrong password six times.
 
 **Cloudflare WAF** (optional dashboard rule): this repo does not define WAF. If you added a rate rule under **Security → WAF**, use that rule’s **Events / Metrics** while running the script against production, or lower the WAF threshold temporarily and confirm you get a Cloudflare block response before your app’s JSON `429`.
+
+### Test production unlock (Vercel)
+
+After redeploying with env vars set:
+
+```bash
+curl -sS -D - -o /tmp/tripdog-out.json \
+  -X POST 'https://zainchalisa.com/api/tripdog/unlock' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Requested-With: TripdogUnlock' \
+  -d '{"password":"YOUR_PASSWORD"}'
+head -1 /tmp/tripdog-out.json
+cat /tmp/tripdog-out.json
+```
+
+Expect `content-type: application/json`, HTTP `200`, and `{"success":true,"project":{...}}`. Wrong password → `401` and `{"success":false,"error":"Incorrect password."}`.
 
 ## Before pushing to GitHub
 

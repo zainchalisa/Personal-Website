@@ -28,6 +28,7 @@ export function rateLimit(
 export function clientKeyFromRequest(request: Request): string {
   return (
     request.headers.get('CF-Connecting-IP') ??
+    request.headers.get('x-real-ip') ??
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     'unknown'
   )

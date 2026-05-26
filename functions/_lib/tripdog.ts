@@ -59,9 +59,16 @@ type TripdogProjectPayload = {
 }
 
 type TripdogEnv = {
+  /** Preferred name on Vercel; TRIPDOG_PASSWORD kept for Cloudflare / local .env */
+  TRIPDOG_UNLOCK_PASSWORD?: string
   TRIPDOG_PASSWORD?: string
   /** JSON string matching TripdogProjectPayload — set in Cloudflare / local .env only */
   TRIPDOG_PROJECT_JSON?: string
+}
+
+function unlockPassword(env: TripdogEnv): string | undefined {
+  const secret = env.TRIPDOG_UNLOCK_PASSWORD?.trim() || env.TRIPDOG_PASSWORD?.trim()
+  return secret || undefined
 }
 
 function sanitizeTripdogProject(parsed: TripdogProjectPayload): TripdogProjectPayload {
@@ -150,7 +157,10 @@ function json(data: unknown, init: ResponseInit = {}): Response {
 }
 
 function tripdogNotConfigured(): Response {
-  return json({ error: 'Trip Dog unlock is not configured.' }, { status: 503 })
+  return json(
+    { success: false, error: 'Unlock is not configured.' },
+    { status: 500 },
+  )
 }
 
 export async function handleTripdogUnlock(
@@ -158,10 +168,10 @@ export async function handleTripdogUnlock(
   env: TripdogEnv,
 ): Promise<Response> {
   if (request.headers.get('X-Requested-With') !== 'TripdogUnlock') {
-    return json({ error: 'Invalid request.' }, { status: 400 })
+    return json({ success: false, error: 'Invalid request.' }, { status: 400 })
   }
 
-  const secret = env.TRIPDOG_PASSWORD?.trim()
+  const secret = unlockPassword(env)
   const project = loadTripdogProject(env)
   if (!secret || !project) {
     return tripdogNotConfigured()
@@ -171,32 +181,32 @@ export async function handleTripdogUnlock(
   try {
     body = (await request.json()) as { password?: string }
   } catch {
-    return json({ error: 'Invalid request.' }, { status: 400 })
+    return json({ success: false, error: 'Invalid request.' }, { status: 400 })
   }
 
   const password = body.password?.trim() ?? ''
   if (!password || password.length > MAX_PASSWORD_LEN) {
-    return json({ error: 'Invalid request.' }, { status: 400 })
+    return json({ success: false, error: 'Invalid request.' }, { status: 400 })
   }
 
   if (!passwordsMatch(password, secret)) {
     const rl = rateLimit(`tripdog:${clientKeyFromRequest(request)}`, UNLOCK_RATE_LIMIT)
     if (!rl.ok) {
       return json(
-        { error: 'Too many attempts. Try again later.' },
+        { success: false, error: 'Too many attempts. Try again later.' },
         {
           status: 429,
           headers: { 'Retry-After': String(rl.retryAfterSec) },
         },
       )
     }
-    return json({ error: 'Incorrect password.' }, { status: 401 })
+    return json({ success: false, error: 'Incorrect password.' }, { status: 401 })
   }
 
   const secure = new URL(request.url).protocol === 'https:'
 
   return json(
-    { project },
+    { success: true, project },
     {
       status: 200,
       headers: {

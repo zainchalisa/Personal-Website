@@ -1,8 +1,28 @@
 import type { PortfolioProject } from './projectTypes'
 
 type UnlockResponse = {
+  success?: boolean
   project?: PortfolioProject
   error?: string
+}
+
+const GENERIC_ERROR = 'Unable to unlock this project right now. Please try again.'
+
+async function parseUnlockJson(res: Response): Promise<UnlockResponse | null> {
+  const contentType = res.headers.get('content-type') ?? ''
+  if (!contentType.includes('application/json')) return null
+  try {
+    return (await res.json()) as UnlockResponse
+  } catch {
+    return null
+  }
+}
+
+function messageForStatus(status: number, data: UnlockResponse | null): string {
+  if (status === 401) return 'Incorrect password. Please try again.'
+  if (status === 429) return 'Too many attempts. Please wait a moment and try again.'
+  if (data?.error) return data.error
+  return GENERIC_ERROR
 }
 
 export async function unlockTripdogProject(password: string): Promise<PortfolioProject> {
@@ -17,16 +37,15 @@ export async function unlockTripdogProject(password: string): Promise<PortfolioP
     body: JSON.stringify({ password }),
   })
 
-  const data = (await res.json()) as UnlockResponse
+  const data = await parseUnlockJson(res)
+
   if (!res.ok) {
-    const message =
-      res.status === 429
-        ? 'Too many attempts. Try again in a few minutes.'
-        : (data.error ?? 'Unable to unlock project.')
-    throw new Error(message)
+    throw new Error(messageForStatus(res.status, data))
   }
-  if (!data.project) {
-    throw new Error('Unlock succeeded but project payload was missing.')
+
+  if (!data?.success || !data.project) {
+    throw new Error(GENERIC_ERROR)
   }
+
   return data.project
 }

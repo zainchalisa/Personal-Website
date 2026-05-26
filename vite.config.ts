@@ -37,6 +37,7 @@ function tripdogApiDevPlugin(env: Record<string, string>): Plugin {
           const host = req.headers.host ?? 'localhost'
           const url = new URL(req.url ?? '/', `http://${host}`)
           const tripdogEnv = {
+            TRIPDOG_UNLOCK_PASSWORD: env.TRIPDOG_UNLOCK_PASSWORD,
             TRIPDOG_PASSWORD: env.TRIPDOG_PASSWORD,
             TRIPDOG_PROJECT_JSON: env.TRIPDOG_PROJECT_JSON,
           }

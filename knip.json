@@ -3,7 +3,8 @@
   "entry": [
     "index.html",
     "public/theme-init.js",
-    "functions/api/**/*.ts"
+    "functions/api/**/*.ts",
+    "api/**/*.ts"
   ],
   "project": ["src/**/*.{ts,tsx}", "functions/**/*.ts", "public/**/*.js"],
   "ignoreDependencies": ["tailwindcss"],
