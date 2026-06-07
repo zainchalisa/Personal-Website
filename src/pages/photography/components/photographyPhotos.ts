@@ -122,6 +122,10 @@ function getCountriesByRegion(): Record<PinboardRegion, string[]> {
   return out
 }
 
+export function hasPinboardPhotoAssets(): boolean {
+  return PINBOARD_PHOTOS.some((photo) => photo.src != null)
+}
+
 export function getCountryCardsForRegion(region: PinboardRegion): CountryCardData[] {
   return getCountriesByRegion()[region].map((country) => {
     const photos = getPhotosForCountry(country)

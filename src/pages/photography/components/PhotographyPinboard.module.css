@@ -150,6 +150,12 @@
   transition-duration: 750ms;
 }
 
+.comingSoonEntrance {
+  transition-property: opacity, transform;
+  transition-duration: 820ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .pin {
   width: 13px;
   height: 13px;
@@ -570,6 +576,7 @@
   .regionNavEntrance,
   .clusterLabelEntrance,
   .hudEntrance,
+  .comingSoonEntrance,
   .cardEntrance,
   .stringLine,
   .stringHub {

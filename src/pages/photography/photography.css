@@ -199,6 +199,67 @@
   backdrop-filter: blur(8px);
 }
 
+.photography-coming-soon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 8;
+  pointer-events: none;
+  text-align: center;
+  padding: 0.9rem 1.4rem 0.85rem;
+  font-family: var(--font-sans);
+  color: var(--photo-text);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--photo-surface-elevated) 92%, #ebe4cc) 0%,
+    color-mix(in srgb, var(--photo-surface-elevated) 88%, #e0d8bc) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--photo-accent) 28%, var(--photo-border));
+  border-radius: 4px;
+  box-shadow:
+    2px 3px 0 rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 12px 40px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  transform: translate(-50%, -50%) rotate(-1.25deg);
+}
+
+.photography-page[data-theme='dark'] .photography-coming-soon,
+:root[data-theme='dark'] .photography-coming-soon {
+  box-shadow:
+    2px 3px 0 rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 48px rgba(0, 0, 0, 0.42);
+}
+
+.photography-coming-soon-label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--photo-text-muted);
+}
+
+.photography-coming-soon-title {
+  margin: 0.35rem 0 0;
+  font-size: clamp(1.05rem, 0.9rem + 0.55vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-transform: lowercase;
+  color: var(--photo-text);
+}
+
+.photography-coming-soon-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--photo-text-muted);
+  text-transform: lowercase;
+}
+
 .photography-lightbox {
   position: fixed;
   inset: 0;

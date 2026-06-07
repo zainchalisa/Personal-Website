@@ -18,6 +18,7 @@ import {
   type BoardRegionLayout,
   type SlideshowTarget,
 } from './pinboardData'
+import { hasPinboardPhotoAssets } from './photographyPhotos'
 import { regionVisitedBarPercent } from './regionCountryTotals'
 import { debounce } from '../../../lib/debounce'
 import { PINBOARD_THEMES } from './pinboardThemes'
@@ -44,6 +45,7 @@ const STAGGER_REGION_MS = 68
 const CARD_BASE_GAP_MS = 300
 const STAGGER_CARD_MS = 62
 const PHOTO_ENTRANCE_KEY = 'zain-photo-entrance-v1'
+const COMING_SOON_DISMISSED_KEY = 'zain-photo-coming-soon-v1'
 
 function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false
@@ -61,6 +63,22 @@ function hasSeenPhotoEntrance(): boolean {
 function markPhotoEntranceSeen(): void {
   try {
     sessionStorage.setItem(PHOTO_ENTRANCE_KEY, '1')
+  } catch {
+    /* private mode */
+  }
+}
+
+function hasDismissedComingSoon(): boolean {
+  try {
+    return sessionStorage.getItem(COMING_SOON_DISMISSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markComingSoonDismissed(): void {
+  try {
+    sessionStorage.setItem(COMING_SOON_DISMISSED_KEY, '1')
   } catch {
     /* private mode */
   }
@@ -155,7 +173,23 @@ export default function PhotographyPinboard({
   const [mounted, setMounted] = useState(false)
   const [legendMounted, setLegendMounted] = useState(false)
   const [floating, setFloating] = useState(false)
+  const [comingSoonVisible, setComingSoonVisible] = useState(
+    () => !hasPinboardPhotoAssets() && !hasDismissedComingSoon(),
+  )
   const entranceCompleteRef = useRef(false)
+
+  const dismissComingSoon = useCallback(() => {
+    if (!comingSoonVisible) return
+    setComingSoonVisible(false)
+    markComingSoonDismissed()
+  }, [comingSoonVisible])
+
+  useEffect(() => {
+    if (!active || !comingSoonVisible) return
+    const onDismiss = () => dismissComingSoon()
+    window.addEventListener('pointerdown', onDismiss, { capture: true, once: true })
+    return () => window.removeEventListener('pointerdown', onDismiss, { capture: true })
+  }, [active, comingSoonVisible, dismissComingSoon])
 
   const sortedCards = useMemo(() => {
     const cards = regions.flatMap((region) =>
@@ -185,6 +219,7 @@ export default function PhotographyPinboard({
     return indexByCountry
   }, [sortedCards])
 
+  const showComingSoon = comingSoonVisible
   const totalCards = sortedCards.length
   const regionLabelBaseDelay = REGION_LABEL_BASE_DELAY
   const lastRegionLabelDelay =
@@ -812,6 +847,27 @@ export default function PhotographyPinboard({
           className={styles.lightOverlay}
           aria-hidden
         />
+
+        {showComingSoon ? (
+          <div
+            className={`photography-coming-soon ${styles.comingSoonEntrance}`}
+            role="status"
+            aria-live="polite"
+            style={{
+              opacity: mounted ? 1 : 0,
+              transform: mounted
+                ? 'translate(-50%, -50%) rotate(-1.25deg)'
+                : 'translate(-50%, calc(-50% + 0.85rem)) rotate(-1.25deg) scale(0.96)',
+              transitionDelay: `${lastCardDelay + 240}ms`,
+            }}
+          >
+            <p className="photography-coming-soon-label">gallery</p>
+            <p className="photography-coming-soon-title">photos coming soon</p>
+            <p className="photography-coming-soon-note">
+              places mapped · images on the way
+            </p>
+          </div>
+        ) : null}
 
         <div
           className={`${styles.hud} ${styles.hudEntrance}`}
