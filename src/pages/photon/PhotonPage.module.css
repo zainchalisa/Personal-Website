@@ -152,6 +152,62 @@
   background: #2a2a2a;
 }
 
+.comingSoon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0.5rem 1rem 0.5rem 0.875rem;
+  border: 1px solid rgba(74, 107, 138, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(74, 107, 138, 0.08),
+    rgba(74, 107, 138, 0.02)
+  );
+  box-shadow: 0 1px 2px rgba(74, 107, 138, 0.06);
+}
+
+.comingSoonDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #4a6b8a;
+  box-shadow: 0 0 0 0 rgba(74, 107, 138, 0.5);
+  animation: comingSoonPulse 2s ease-out infinite;
+}
+
+.comingSoonLabel {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #2a2a2a;
+}
+
+.comingSoonDate {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #4a6b8a;
+}
+
+@keyframes comingSoonPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(74, 107, 138, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 0.5rem rgba(74, 107, 138, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 107, 138, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comingSoonDot {
+    animation: none;
+  }
+}
+
 .disclaimer {
   margin: -0.25rem 0 0;
   font-size: 0.75rem;

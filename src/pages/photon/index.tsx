@@ -4,6 +4,8 @@ import { assetUrl } from '../../lib/assetUrl'
 import PhotonPreviewDemo from './components/PhotonPreviewDemo'
 import styles from './PhotonPage.module.css'
 
+const SHOW_EMAIL_SIGNUP = false
+
 export default function PhotonPage() {
   const [email, setEmail] = useState('')
 
@@ -66,23 +68,31 @@ export default function PhotonPage() {
         Photon finds it in your library in seconds.
         </p>
         <div className={styles.ctaBlock}>
-          <form
-            className={styles.ctaRow}
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input
-              type="email"
-              className={styles.emailInput}
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              aria-label="Email address"
-            />
-            <button type="submit" className={styles.cta}>
-              download for mac
-            </button>
-          </form>
+          {SHOW_EMAIL_SIGNUP ? (
+            <form
+              className={styles.ctaRow}
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input
+                type="email"
+                className={styles.emailInput}
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                aria-label="Email address"
+              />
+              <button type="submit" className={styles.cta}>
+                download for mac
+              </button>
+            </form>
+          ) : (
+            <div className={styles.comingSoon}>
+              <span className={styles.comingSoonDot} aria-hidden="true" />
+              <span className={styles.comingSoonLabel}>Coming soon</span>
+              <span className={styles.comingSoonDate}>June 2026</span>
+            </div>
+          )}
           <p className={styles.disclaimer}>
             Your photos never leave your Mac. All local, private, & free.
           </p>
