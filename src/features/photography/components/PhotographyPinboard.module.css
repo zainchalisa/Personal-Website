@@ -59,6 +59,7 @@
   max-height: none;
   flex: 1;
   aspect-ratio: auto;
+  touch-action: none;
 }
 
 .frame {
@@ -70,6 +71,7 @@
   cursor: grab;
   user-select: none;
   touch-action: none;
+  overscroll-behavior: contain;
   border-radius: 0;
   background-image:
     linear-gradient(rgba(0, 0, 0, 0.055) 1px, transparent 1px),
