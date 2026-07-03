@@ -112,5 +112,6 @@ export function runIosHomeAppAction(
     return
   }
 
-  window.location.href = action.href
+  // mailto: must use same-tab navigation so iOS/Android open the system mail app.
+  window.location.assign(action.href)
 }

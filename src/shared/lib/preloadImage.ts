@@ -124,3 +124,23 @@ export function preloadImages(sources: readonly (string | null | undefined)[]): 
     if (src) void preloadImage(src)
   }
 }
+
+/** Drop decoded image metadata to free memory (e.g. when leaving photography on mobile). */
+export function clearImagePreloadCache(keep?: ReadonlySet<string>): void {
+  if (!keep || keep.size === 0) {
+    loaded.clear()
+    metaCache.clear()
+    inflight.clear()
+    return
+  }
+
+  for (const src of [...loaded]) {
+    if (!keep.has(src)) loaded.delete(src)
+  }
+  for (const src of [...metaCache.keys()]) {
+    if (!keep.has(src)) metaCache.delete(src)
+  }
+  for (const src of [...inflight.keys()]) {
+    if (!keep.has(src)) inflight.delete(src)
+  }
+}

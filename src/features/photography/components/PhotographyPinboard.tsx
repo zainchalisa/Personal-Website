@@ -23,7 +23,7 @@ import {
 import { hasPinboardPhotoAssets } from './photographyPhotos'
 import { regionVisitedBarPercent } from './regionCountryTotals'
 import { debounce } from '@/shared/lib/debounce'
-import { preloadImage, preloadImages } from '@/shared/lib/preloadImage'
+import { preloadImage, preloadImages, clearImagePreloadCache } from '@/shared/lib/preloadImage'
 import {
   preloadCountryGallery,
   preloadRegionGallery,
@@ -286,11 +286,13 @@ export default function PhotographyPinboard({
     activeRegionIdRef.current = activeRegionId
   }, [activeRegionId])
 
+  const preloadOpts = useMemo(() => ({ mobile: isMobile }), [isMobile])
+
   useEffect(() => {
     if (!active || !activeRegionId) return
     const region = regions.find((r) => r.id === activeRegionId)
-    if (region) preloadRegionGallery(region)
-  }, [active, activeRegionId, regions])
+    if (region) preloadRegionGallery(region, preloadOpts)
+  }, [active, activeRegionId, regions, preloadOpts])
 
   const persistPhotographySession = useCallback(() => {
     patchPortfolioSession({
@@ -301,16 +303,17 @@ export default function PhotographyPinboard({
           scale: zoomRef.current.scale,
           tScale: zoomRef.current.tScale,
         },
-        slideshow: slideshow
-          ? {
-              country: slideshow.country,
-              slideIndex,
-              slideDirection,
-            }
-          : null,
+        slideshow:
+          !isMobile && slideshow
+            ? {
+                country: slideshow.country,
+                slideIndex,
+                slideDirection,
+              }
+            : null,
       },
     })
-  }, [activeRegionId, slideshow, slideIndex, slideDirection])
+  }, [activeRegionId, slideshow, slideIndex, slideDirection, isMobile])
 
   useEffect(() => {
     if (!active) return
@@ -323,6 +326,18 @@ export default function PhotographyPinboard({
     window.addEventListener('pagehide', onHide)
     return () => window.removeEventListener('pagehide', onHide)
   }, [active, persistPhotographySession])
+
+  useEffect(() => {
+    if (active) return
+    clearImagePreloadCache()
+  }, [active])
+
+  useEffect(
+    () => () => {
+      if (isMobile) clearImagePreloadCache()
+    },
+    [isMobile],
+  )
 
   const regionStaggerIndex = useMemo(() => {
     const indexByRegion = new Map<string, number>()
@@ -422,10 +437,10 @@ export default function PhotographyPinboard({
       const focus = getRegionFocusPoint(region)
       const { x: toX, y: toY } = cameraTargetFor(focus.x, focus.y)
       setActiveRegionId(region.id)
-      preloadRegionGallery(region)
+      preloadRegionGallery(region, preloadOpts)
       flyCameraTo(toX, toY, instant)
     },
-    [cameraTargetFor, flyCameraTo],
+    [cameraTargetFor, flyCameraTo, preloadOpts],
   )
 
   const flyToBoardCenter = useCallback(
@@ -532,7 +547,7 @@ export default function PhotographyPinboard({
           zoomRef.current.tScale = photoSession.zoom.tScale
         }
 
-        if (photoSession?.slideshow) {
+        if (!isMobile && photoSession?.slideshow) {
           const { country, slideIndex: savedIndex, slideDirection: savedDir } =
             photoSession.slideshow
           for (const region of regions) {
@@ -552,7 +567,7 @@ export default function PhotographyPinboard({
       }
 
       let targetRegion: BoardRegionLayout | null = null
-      if (photoSession?.slideshow) {
+      if (!isMobile && photoSession?.slideshow) {
         const country = photoSession.slideshow.country
         targetRegion =
           regions.find((region) =>
@@ -596,7 +611,7 @@ export default function PhotographyPinboard({
       observer.disconnect()
       if (settleTimer !== undefined) window.clearTimeout(settleTimer)
     }
-  }, [active, flyToRegion, regions])
+  }, [active, flyToRegion, regions, isMobile])
 
   useEffect(() => {
     if (!active) return
@@ -604,6 +619,11 @@ export default function PhotographyPinboard({
     let lastLightMs = 0
     const LIGHT_INTERVAL_MS = 1000 / 30
     const tick = (now: number) => {
+      if (isMobile && slideshowRef.current) {
+        raf = requestAnimationFrame(tick)
+        return
+      }
+
       const lightCanvas = lightCanvasRef.current
       const frame = frameRef.current
       if (
@@ -635,7 +655,7 @@ export default function PhotographyPinboard({
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [active, theme, th])
+  }, [active, theme, th, isMobile])
 
   useEffect(() => {
     if (!active) return
@@ -978,12 +998,12 @@ export default function PhotographyPinboard({
 
   const openSlideshow = useCallback(
     (layout: BoardCountryLayout, region: BoardRegionLayout) => {
-      preloadCountryGallery(layout.card.photos)
+      preloadCountryGallery(layout.card.photos, preloadOpts)
       setSlideshow(toSlideshowTarget(layout, region.name))
       setSlideIndex(0)
       setSlideDirection(1)
     },
-    [],
+    [preloadOpts],
   )
 
   const onCardPointerDown = useCallback((e: ReactPointerEvent) => {
@@ -1007,7 +1027,8 @@ export default function PhotographyPinboard({
     setSlideshow(null)
     setSlideIndex(0)
     setSlideDirection(1)
-  }, [])
+    if (isMobile) clearImagePreloadCache()
+  }, [isMobile])
 
   const ssNav = useCallback(
     (dir: number) => {
@@ -1037,14 +1058,16 @@ export default function PhotographyPinboard({
   // Warm nearby slides whenever the viewer moves through a gallery.
   useEffect(() => {
     if (!slideshow) return
+    const back = isMobile ? 1 : 2
+    const ahead = isMobile ? 2 : 8
     const sources: (string | null)[] = []
-    for (let i = slideIndex - 2; i <= slideIndex + 8; i++) {
+    for (let i = slideIndex - back; i <= slideIndex + ahead; i++) {
       if (i < 0 || i >= slideshow.photos.length) continue
       sources.push(slideshow.photos[i]?.src ?? null)
     }
     preloadImages(sources)
-    preloadSlideshowRemainder(slideshow.photos)
-  }, [slideshow, slideIndex])
+    preloadSlideshowRemainder(slideshow.photos, preloadOpts)
+  }, [slideshow, slideIndex, isMobile, preloadOpts])
 
   const registerCard = useCallback(
     (
@@ -1234,7 +1257,7 @@ export default function PhotographyPinboard({
                   }}
                   onPointerDown={(e) => {
                     onCardPointerDown(e)
-                    preloadCountryGallery(c.card.photos)
+                    preloadCountryGallery(c.card.photos, preloadOpts)
                   }}
                   onPointerEnter={() => {
                     const firstSrc =
