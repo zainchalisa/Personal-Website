@@ -1,0 +1,50 @@
+.terminal-root {
+  --term-bg: #0c0c0c;
+  --term-text: #e0ddd8;
+  --term-prompt: #4a9eff;
+  --term-command: #f0ede6;
+  --term-name: #f0ede6;
+  --term-name-active: #f0ede6;
+  --term-project-active-bg: rgba(255, 255, 255, 0.03);
+  --term-built: #4acfb0;
+  --term-concept: #d4915a;
+  --term-desc: #666666;
+  --term-stack: #4a9eff;
+  --term-action: #d4915a;
+  --term-divider: #222222;
+  --term-cursor: #4a9eff;
+  --term-detail-bg: #0c0c0c;
+  --term-detail-topbar-bg: #111111;
+  --term-detail-topbar-border: #1a1a1a;
+  --term-detail-topbar-muted: #666666;
+  --term-detail-topbar-hover: #e0ddd8;
+  --term-scrollbar: #222222;
+  --term-placeholder-bg: rgba(255, 255, 255, 0.03);
+  --term-placeholder-border: #2a2a2a;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.terminal-root[data-portfolio-theme='light'] {
+  --term-bg: #f0ede6;
+  --term-text: #111111;
+  --term-prompt: #2563eb;
+  --term-command: #111111;
+  --term-name: #111111;
+  --term-name-active: #111111;
+  --term-project-active-bg: rgba(0, 0, 0, 0.04);
+  --term-built: #0d9488;
+  --term-concept: #c47b3a;
+  --term-desc: #666666;
+  --term-stack: #2563eb;
+  --term-action: #c47b3a;
+  --term-divider: #dddddd;
+  --term-cursor: #2563eb;
+  --term-detail-bg: #e8e5df;
+  --term-detail-topbar-bg: #ddd9d2;
+  --term-detail-topbar-border: #cccccc;
+  --term-detail-topbar-muted: #666666;
+  --term-detail-topbar-hover: #111111;
+  --term-scrollbar: #dddddd;
+  --term-placeholder-bg: rgba(0, 0, 0, 0.04);
+  --term-placeholder-border: #cccccc;
+}

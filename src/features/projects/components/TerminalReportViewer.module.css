@@ -1,0 +1,80 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+}
+
+.scrollerWrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.scroller {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--term-scrollbar) transparent;
+}
+
+.scroller::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroller::-webkit-scrollbar-thumb {
+  background: var(--term-scrollbar);
+  border-radius: 999px;
+}
+
+.scroller::-webkit-scrollbar-thumb:hover {
+  background: var(--term-action);
+}
+
+.page {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.pageCounter {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--term-desc);
+}
+
+.downloadBtn {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--term-action);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.downloadBtn:hover {
+  opacity: 0.85;
+}
+
+.empty {
+  color: var(--term-desc);
+  font-size: 13px;
+  padding: 24px;
+  text-align: center;
+}

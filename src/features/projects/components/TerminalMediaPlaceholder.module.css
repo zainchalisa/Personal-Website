@@ -1,0 +1,49 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.frame {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  border-radius: 8px;
+  border: 1px dashed var(--term-placeholder-border, var(--term-divider));
+  background: var(--term-placeholder-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px;
+  text-align: center;
+}
+
+.label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--term-text);
+}
+
+.sub {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--term-desc);
+  max-width: 22ch;
+}
+
+.rootMobile .frame {
+  min-height: 220px;
+}

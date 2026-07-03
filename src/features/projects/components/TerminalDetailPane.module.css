@@ -1,0 +1,222 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--term-text);
+  background: var(--term-detail-bg);
+}
+
+.mobileRoot {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--term-text);
+  background: var(--term-detail-bg);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--term-detail-topbar-bg);
+  border-bottom: 1px solid var(--term-detail-topbar-border);
+  flex-shrink: 0;
+}
+
+.topBarPath {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--term-detail-topbar-muted);
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topBarClose {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--term-detail-topbar-muted);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 150ms ease;
+}
+
+.topBarClose:hover {
+  color: var(--term-detail-topbar-hover);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--term-scrollbar) transparent;
+}
+
+.header {
+  padding-bottom: 4px;
+}
+
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--term-name);
+  letter-spacing: -0.02em;
+}
+
+.badge {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.badgeBuilt {
+  color: var(--term-built);
+}
+
+.badgeConcept {
+  color: var(--term-concept);
+}
+
+.description {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--term-text);
+  opacity: 0.88;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  width: 100%;
+}
+
+.tagsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.pill {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--term-divider);
+  color: var(--term-stack);
+  background: transparent;
+}
+
+.pdfLink {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: #d4915a;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 150ms ease;
+}
+
+.pdfLink:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.linksRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.linkChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--term-action) 55%, var(--term-divider));
+  background: color-mix(in srgb, var(--term-action) 8%, transparent);
+  color: var(--term-action);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.linkChip:hover {
+  background: color-mix(in srgb, var(--term-action) 18%, transparent);
+  border-color: var(--term-action);
+}
+
+.linkChip span {
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media {
+  margin-top: 16px;
+  height: clamp(280px, 46vh, 480px);
+  display: flex;
+  flex-direction: column;
+}
+
+.media > * {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.mobileRoot .media {
+  height: clamp(340px, 58vh, 560px);
+  min-height: 340px;
+  margin-top: 14px;
+}
+
+.mobileRoot .media > * {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.mobileRoot .body {
+  padding: 14px 12px;
+}
