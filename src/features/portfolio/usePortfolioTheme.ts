@@ -8,13 +8,14 @@ function applyPortfolioTheme(next: PortfolioTheme) {
   document.documentElement.style.colorScheme = next
 
   const themeColor = next === 'dark' ? '#1c3356' : '#cfcce8'
-  let meta = document.querySelector('meta[name="theme-color"]')
-  if (!meta) {
-    meta = document.createElement('meta')
-    meta.setAttribute('name', 'theme-color')
-    document.head.appendChild(meta)
-  }
+  // iOS Safari reads theme-color at load and frequently ignores in-place content
+  // mutations. Removing the existing node(s) and inserting a fresh one forces a re-read
+  // so the status bar / toolbar re-tint when the user toggles themes.
+  document.querySelectorAll('meta[name="theme-color"]').forEach((el) => el.remove())
+  const meta = document.createElement('meta')
+  meta.setAttribute('name', 'theme-color')
   meta.setAttribute('content', themeColor)
+  document.head.appendChild(meta)
 }
 
 export function usePortfolioTheme() {
