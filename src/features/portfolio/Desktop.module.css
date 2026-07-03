@@ -660,8 +660,11 @@
   flex-direction: column;
 }
 
+/* Absolute (not fixed) so Safari 26 does not sample this gradient layer for the browser-chrome
+   tint. It still fills the fixed .desktop identically; the sampled source becomes <body>, which
+   WebKit live-re-samples so the status bar / toolbar update on theme toggle. */
 .desktop[data-layout='ios'] .wallpaper {
-  position: fixed;
+  position: absolute;
   inset: 0;
   width: auto;
   height: auto;

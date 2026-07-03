@@ -337,7 +337,11 @@ html[data-theme='light'] {
   }
 }
 
-/* Full-bleed wallpaper on phone/tablet layout — tied to html[data-layout=ios], not viewport width */
+/* Full-bleed wallpaper on phone/tablet layout — tied to html[data-layout=ios], not viewport width.
+   The visible gradient lives on html + #root. Safari 26 derives the status bar / toolbar tint by
+   sampling a fixed/sticky element near the edges, falling back to <body>; only <body> is
+   live-re-sampled when its color changes. So <body> carries ONLY the solid chrome color (no
+   gradient) and stays position:fixed, making it the sampled source that updates on theme toggle. */
 html[data-layout='ios'],
 html[data-layout='ios'] body,
 html[data-layout='ios'] #root {
@@ -346,7 +350,15 @@ html[data-layout='ios'] #root {
   min-height: 100svh;
   min-height: 100lvh;
   min-height: -webkit-fill-available;
+}
+
+html[data-layout='ios'],
+html[data-layout='ios'] #root {
   background: var(--pt-wallpaper);
+}
+
+html[data-layout='ios'] body {
+  background-image: none;
 }
 
 html[data-layout='ios'][data-theme='dark'],
@@ -358,26 +370,6 @@ html[data-layout='ios'][data-theme='dark'] #root {
 html[data-layout='ios'][data-theme='light'],
 html[data-layout='ios'][data-theme='light'] body,
 html[data-layout='ios'][data-theme='light'] #root {
-  background-color: #cfcce8;
-}
-
-html[data-layout='ios']::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  background: var(--pt-wallpaper);
-  pointer-events: none;
-}
-
-html[data-layout='ios'][data-theme='dark']::before {
-  background-color: #1c3356;
-}
-
-html[data-layout='ios'][data-theme='light']::before {
   background-color: #cfcce8;
 }
 
