@@ -352,13 +352,13 @@ html[data-layout='ios'] #root {
 html[data-layout='ios'][data-theme='dark'],
 html[data-layout='ios'][data-theme='dark'] body,
 html[data-layout='ios'][data-theme='dark'] #root {
-  background-color: #1a3a5c;
+  background-color: #1c3356;
 }
 
 html[data-layout='ios'][data-theme='light'],
 html[data-layout='ios'][data-theme='light'] body,
 html[data-layout='ios'][data-theme='light'] #root {
-  background-color: #c7d4f0;
+  background-color: #cfcce8;
 }
 
 html[data-layout='ios']::before {
@@ -374,11 +374,11 @@ html[data-layout='ios']::before {
 }
 
 html[data-layout='ios'][data-theme='dark']::before {
-  background-color: #1a3a5c;
+  background-color: #1c3356;
 }
 
 html[data-layout='ios'][data-theme='light']::before {
-  background-color: #c7d4f0;
+  background-color: #cfcce8;
 }
 
 /* Desktop keeps explicit height for window layout math */

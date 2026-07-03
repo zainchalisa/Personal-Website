@@ -7,7 +7,7 @@ function applyPortfolioTheme(next: PortfolioTheme) {
   document.documentElement.dataset.theme = next
   document.documentElement.style.colorScheme = next
 
-  const themeColor = next === 'dark' ? '#1a3a5c' : '#c7d4f0'
+  const themeColor = next === 'dark' ? '#1c3356' : '#cfcce8'
   let meta = document.querySelector('meta[name="theme-color"]')
   if (!meta) {
     meta = document.createElement('meta')
