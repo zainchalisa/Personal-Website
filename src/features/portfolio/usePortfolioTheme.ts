@@ -6,6 +6,15 @@ import './portfolio-theme.css'
 function applyPortfolioTheme(next: PortfolioTheme) {
   document.documentElement.dataset.theme = next
   document.documentElement.style.colorScheme = next
+
+  const themeColor = next === 'dark' ? '#1a3a5c' : '#c7d4f0'
+  let meta = document.querySelector('meta[name="theme-color"]')
+  if (!meta) {
+    meta = document.createElement('meta')
+    meta.setAttribute('name', 'theme-color')
+    document.head.appendChild(meta)
+  }
+  meta.setAttribute('content', themeColor)
 }
 
 export function usePortfolioTheme() {

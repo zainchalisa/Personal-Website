@@ -1,23 +1,30 @@
-/* Page root */
+/* Page root — wallpaper vars live on html so mobile Safari can paint behind browser chrome */
 html[data-theme='dark'] {
   color-scheme: dark;
   --pt-root-bg: #0d1117;
   --pt-root-text: #e0ddd8;
+  --pt-wallpaper: radial-gradient(ellipse 80% 60% at 70% 20%, rgba(255, 180, 120, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(100, 140, 220, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 80% at 50% 100%, rgba(40, 60, 100, 0.5) 0%, transparent 60%),
+    linear-gradient(165deg, #1a3a5c 0%, #2d1b4e 35%, #4a2040 60%, #1e2d50 100%);
 }
 
 html[data-theme='light'] {
   color-scheme: light;
   --pt-root-bg: #c8d4e4;
   --pt-root-text: #1d1d1f;
+  --pt-wallpaper: radial-gradient(
+    ellipse at top left,
+    #c7d4f0 0%,
+    #b8c4e8 25%,
+    #c4b8e0 50%,
+    #d4c0e8 75%,
+    #e0c8d8 100%
+  );
 }
 
 /* Desktop + windows — dark (attribute selector: CSS Modules hashes .desktop class) */
 [data-portfolio-theme='dark'] {
-  --pt-wallpaper: radial-gradient(ellipse 80% 60% at 70% 20%, rgba(255, 180, 120, 0.35) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(100, 140, 220, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse 100% 80% at 50% 100%, rgba(40, 60, 100, 0.5) 0%, transparent 60%),
-    linear-gradient(165deg, #1a3a5c 0%, #2d1b4e 35%, #4a2040 60%, #1e2d50 100%);
-
   --pt-menubar-bg: rgba(30, 30, 30, 0.72);
   --pt-menubar-border: rgba(255, 255, 255, 0.08);
   --pt-menubar-text: rgba(255, 255, 255, 0.92);
@@ -150,15 +157,6 @@ html[data-theme='light'] {
 
 /* Desktop + windows — light */
 [data-portfolio-theme='light'] {
-  --pt-wallpaper: radial-gradient(
-    ellipse at top left,
-    #c7d4f0 0%,
-    #b8c4e8 25%,
-    #c4b8e0 50%,
-    #d4c0e8 75%,
-    #e0c8d8 100%
-  );
-
   --pt-menubar-bg: rgba(255, 255, 255, 0.72);
   --pt-menubar-border: rgba(0, 0, 0, 0.08);
   --pt-menubar-text: rgba(0, 0, 0, 0.88);
@@ -339,13 +337,29 @@ html[data-theme='light'] {
   }
 }
 
-/* Match wallpaper edge tones behind Safari chrome on mobile */
+/* Full-bleed wallpaper on mobile — fills behind Safari status bar & URL bar */
 @media (max-width: 640px) {
-  html[data-theme='dark'] {
-    --pt-root-bg: #1a3a5c;
+  html,
+  body,
+  #root {
+    max-height: none;
+    min-height: 100%;
+    min-height: 100dvh;
+    min-height: 100lvh;
+    min-height: -webkit-fill-available;
   }
 
-  html[data-theme='light'] {
-    --pt-root-bg: #c7d4f0;
+  html[data-theme='dark'],
+  html[data-theme='dark'] body,
+  html[data-theme='dark'] #root {
+    background: var(--pt-wallpaper);
+    background-color: #1a3a5c;
+  }
+
+  html[data-theme='light'],
+  html[data-theme='light'] body,
+  html[data-theme='light'] #root {
+    background: var(--pt-wallpaper);
+    background-color: #c7d4f0;
   }
 }
