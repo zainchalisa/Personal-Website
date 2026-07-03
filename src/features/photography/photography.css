@@ -119,14 +119,12 @@
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--photo-text);
-  text-transform: capitalize;
 }
 
 .photography-meta {
   font-size: 0.75rem;
   letter-spacing: 0.04em;
   color: var(--photo-text-muted);
-  text-transform: lowercase;
 }
 
 .photography-reset,
@@ -248,7 +246,6 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.2;
-  text-transform: lowercase;
   color: var(--photo-text);
 }
 
@@ -257,7 +254,6 @@
   font-size: 0.75rem;
   letter-spacing: 0.02em;
   color: var(--photo-text-muted);
-  text-transform: lowercase;
 }
 
 .photography-lightbox {

@@ -1,4 +1,4 @@
-import type { Theme } from '../../../hooks/useTheme'
+import type { Theme } from '@/shared/hooks/useTheme'
 
 /** Radial viewport light (from references/pinboard_lighting.html). */
 type PinboardLightConfig = {
@@ -43,6 +43,12 @@ export type PinboardThemeTokens = {
   ssControlBg: string
   ssControlHoverBg: string
   ssControlIcon: string
+}
+
+/** Mobile cork — lighter warm tan (light) / slightly lifted dark (dark). */
+export const MOBILE_BOARD_BASE: Record<Theme, string> = {
+  light: '#dcccb0',
+  dark: '#2a2420',
 }
 
 export const PINBOARD_THEMES: Record<Theme, PinboardThemeTokens> = {
@@ -113,17 +119,17 @@ export const PINBOARD_THEMES: Record<Theme, PinboardThemeTokens> = {
     hudBg: '#1a1a2e',
     hudText: '#f0ebe0',
     stringSt: 'rgba(200,140,50,0.18)',
-    ssBg: '#F5F0E4',
-    ssBorder: 'rgba(184, 137, 42, 0.35)',
-    ssImgBg: 'rgba(26, 18, 8, 0.08)',
-    ssName: '#1a1208',
-    ssRegion: '#6a5840',
-    ssCaption: '#4a3a28',
-    ssCounter: '#7a6a50',
-    ssDotActive: '#2a1a08',
-    ssDotInactive: '#b8aa90',
-    ssControlBg: 'rgba(26, 18, 8, 0.58)',
-    ssControlHoverBg: 'rgba(26, 18, 8, 0.88)',
+    ssBg: '#1a1a2e',
+    ssBorder: 'rgba(255, 255, 255, 0.1)',
+    ssImgBg: 'rgba(0, 0, 0, 0.35)',
+    ssName: '#f0ebe0',
+    ssRegion: 'rgba(240, 235, 224, 0.55)',
+    ssCaption: 'rgba(240, 235, 224, 0.65)',
+    ssCounter: 'rgba(220, 190, 130, 0.6)',
+    ssDotActive: '#b8892a',
+    ssDotInactive: 'rgba(240, 235, 224, 0.22)',
+    ssControlBg: 'rgba(0, 0, 0, 0.55)',
+    ssControlHoverBg: 'rgba(0, 0, 0, 0.78)',
     ssControlIcon: '#f5f0e4',
   },
 }

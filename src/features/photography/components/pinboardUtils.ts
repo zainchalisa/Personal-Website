@@ -1,8 +1,10 @@
-import type { Theme } from '../../../hooks/useTheme'
+import type { Theme } from '@/shared/hooks/useTheme'
 import type { PinboardThemeTokens } from './pinboardThemes'
 
 export const BOARD_W = 2600
 export const BOARD_H = 1400
+/** Zoom-out scale for mobile pinboard — ~8–10 cards visible at once. */
+export const MOBILE_WORLD_SCALE = 0.68
 
 function hashHue(text: string): number {
   let h = 0
@@ -49,14 +51,23 @@ export function makePhotoSvg(w: number, h: number, c1: string, c2: string, v: nu
   return `<rect width="${w}" height="${h}" fill="${fill1}"/><rect x="${w * 0.12}" y="${h * 0.12}" width="${w * 0.76}" height="${h * 0.76}" fill="${fill2}" opacity=".35"/><rect x="${w * 0.3}" y="${h * 0.17}" width="${w * 0.16}" height="${h * 0.19}" fill="${fill1}" opacity=".7" rx="1"/><rect x="${w * 0.56}" y="${h * 0.17}" width="${w * 0.16}" height="${h * 0.19}" fill="${fill1}" opacity=".7" rx="1"/><rect x="${w * 0.1}" y="${h * 0.63}" width="${w * 0.8}" height="${h * 0.08}" fill="${fill2}" opacity=".5"/>`
 }
 
+type DrawBoardOptions = {
+  /** Stronger grid contrast so polaroids pop on mobile. */
+  highContrast?: boolean
+}
+
 /** Cork board grid — references/pinboard_lighting.html drawBoard() */
 export function drawPinboardBoard(
   ctx: CanvasRenderingContext2D,
   boardBase: string,
+  options?: DrawBoardOptions,
 ): void {
+  const gridAlpha = options?.highContrast ? 0.085 : 0.055
+  const weaveAlpha = options?.highContrast ? 0.04 : 0.025
+
   ctx.fillStyle = boardBase
   ctx.fillRect(0, 0, BOARD_W, BOARD_H)
-  ctx.strokeStyle = 'rgba(0,0,0,0.055)'
+  ctx.strokeStyle = `rgba(0,0,0,${gridAlpha})`
   ctx.lineWidth = 1
   for (let x = 0; x < BOARD_W; x += 6) {
     ctx.beginPath()
@@ -70,7 +81,7 @@ export function drawPinboardBoard(
     ctx.lineTo(BOARD_W, y)
     ctx.stroke()
   }
-  ctx.strokeStyle = 'rgba(255,255,255,0.025)'
+  ctx.strokeStyle = `rgba(255,255,255,${weaveAlpha})`
   for (let i = -BOARD_H; i < BOARD_W + BOARD_H; i += 12) {
     ctx.beginPath()
     ctx.moveTo(i, 0)

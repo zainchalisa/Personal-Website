@@ -1,4 +1,16 @@
-export type PinboardRegion = 'NORTH AMERICA' | 'EUROPE' | 'ASIA'
+import { assetUrl } from '@/shared/lib/assetUrl'
+import {
+  PHOTOGRAPHY_ASSET_MANIFEST,
+  type PhotographyAssetFolder,
+} from '../photographyAssetManifest'
+
+export type PinboardRegion =
+  | 'NORTH AMERICA'
+  | 'SOUTH AMERICA'
+  | 'EUROPE'
+  | 'AFRICA'
+  | 'ASIA'
+  | 'OCEANIA'
 
 export type PinboardPhoto = {
   id: string
@@ -29,18 +41,15 @@ const REGION_BY_COUNTRY: Record<string, PinboardRegion> = {
   Scotland: 'EUROPE',
   Monaco: 'EUROPE',
   Spain: 'EUROPE',
-  Germany: 'EUROPE',
-  Austria: 'EUROPE',
-  Hungary: 'EUROPE',
-  'Czech Republic': 'EUROPE',
-  Turkey: 'EUROPE',
-  'Vatican City': 'EUROPE',
+  // Turkey is transcontinental; under a continent model it sits in Asia (Western Asia).
+  Turkey: 'ASIA',
   India: 'ASIA',
 }
 
 /** Display order for country cards within each region */
 const COUNTRY_ORDER: Record<PinboardRegion, readonly string[]> = {
   'NORTH AMERICA': ['United States', 'Canada'],
+  'SOUTH AMERICA': [],
   EUROPE: [
     'Italy',
     'Switzerland',
@@ -49,17 +58,28 @@ const COUNTRY_ORDER: Record<PinboardRegion, readonly string[]> = {
     'Scotland',
     'Monaco',
     'Spain',
-    'Germany',
-    'Austria',
-    'Hungary',
-    'Czech Republic',
-    'Turkey',
-    'Vatican City',
   ],
-  ASIA: ['India'],
+  AFRICA: [],
+  ASIA: ['India', 'Turkey'],
+  OCEANIA: [],
 }
 
 const COUNTRY_DISPLAY: Record<string, string> = {}
+
+/** Maps display country names to portfolio-assets/photography folder names on Cloudflare. */
+const PHOTOGRAPHY_FOLDER_BY_COUNTRY: Record<string, PhotographyAssetFolder> = {
+  'United States': 'united states',
+  Canada: 'canada',
+  Italy: 'italy',
+  Switzerland: 'switzerland',
+  France: 'france',
+  England: 'england',
+  Scotland: 'scotland',
+  Monaco: 'monaco',
+  Spain: 'spain',
+  Turkey: 'turkey',
+  India: 'india',
+}
 
 const RAW: { city: string; country: string; year: number; src: string | null }[] = [
   { city: 'New York City', country: 'United States', year: 2023, src: null },
@@ -72,22 +92,50 @@ const RAW: { city: string; country: string; year: number; src: string | null }[]
   { city: 'Edinburgh', country: 'Scotland', year: 2023, src: null },
   { city: 'Monte Carlo', country: 'Monaco', year: 2023, src: null },
   { city: 'Barcelona', country: 'Spain', year: 2022, src: null },
-  { city: 'Berlin', country: 'Germany', year: 2023, src: null },
-  { city: 'Vienna', country: 'Austria', year: 2023, src: null },
-  { city: 'Budapest', country: 'Hungary', year: 2023, src: null },
-  { city: 'Prague', country: 'Czech Republic', year: 2023, src: null },
   { city: 'Istanbul', country: 'Turkey', year: 2023, src: null },
-  { city: 'Vatican City', country: 'Vatican City', year: 2023, src: null },
   { city: 'Mumbai', country: 'India', year: 2022, src: null },
 ]
 
-const PINBOARD_PHOTOS: PinboardPhoto[] = RAW.map((p, i) => ({
-  ...p,
-  id: `${p.city.toLowerCase().replace(/\s+/g, '-')}-${i}`,
-  region: REGION_BY_COUNTRY[p.country] ?? 'EUROPE',
+function buildCloudflarePhotos(): PinboardPhoto[] {
+  const photos: PinboardPhoto[] = []
+
+  for (const [country, folder] of Object.entries(PHOTOGRAPHY_FOLDER_BY_COUNTRY)) {
+    const files = PHOTOGRAPHY_ASSET_MANIFEST[folder]
+    const region = REGION_BY_COUNTRY[country] ?? 'EUROPE'
+
+    for (const filename of files) {
+      photos.push({
+        id: `${folder}-${filename}`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        city: country,
+        country,
+        year: 2023,
+        src: assetUrl(`/photography/${folder}/${filename}`),
+        region,
+      })
+    }
+  }
+
+  return photos
+}
+
+const PLACEHOLDER_PHOTOS: PinboardPhoto[] = RAW.filter(
+  (entry) => !(entry.country in PHOTOGRAPHY_FOLDER_BY_COUNTRY),
+).map((entry, i) => ({
+  ...entry,
+  id: `${entry.city.toLowerCase().replace(/\s+/g, '-')}-placeholder-${i}`,
+  region: REGION_BY_COUNTRY[entry.country] ?? 'EUROPE',
 }))
 
-const PINBOARD_REGIONS: PinboardRegion[] = ['NORTH AMERICA', 'EUROPE', 'ASIA']
+const PINBOARD_PHOTOS: PinboardPhoto[] = [...buildCloudflarePhotos(), ...PLACEHOLDER_PHOTOS]
+
+const PINBOARD_REGIONS: PinboardRegion[] = [
+  'NORTH AMERICA',
+  'SOUTH AMERICA',
+  'EUROPE',
+  'AFRICA',
+  'ASIA',
+  'OCEANIA',
+]
 
 function displayCountryName(country: string): string {
   return COUNTRY_DISPLAY[country] ?? country

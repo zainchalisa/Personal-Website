@@ -8,12 +8,12 @@ import { REGION_COUNTRY_TOTALS, type PinboardRegionTotalId } from './regionCount
 import { countryPhotoColors } from './pinboardUtils'
 
 export type BoardRegionId =
+  | 'north-america'
+  | 'south-america'
   | 'europe'
-  | 'east-asia'
-  | 'se-asia'
-  | 'americas'
   | 'africa'
-  | 'middle-east'
+  | 'asia'
+  | 'oceania'
 
 export type BoardCountryLayout = {
   card: CountryCardData
@@ -48,65 +48,69 @@ const BOARD_REGION_DEFS: {
   dataRegion?: PinboardRegion
 }[] = [
   {
+    id: 'north-america',
+    name: 'North America',
+    pin: '#b8892a',
+    cx: 520,
+    cy: 360,
+    dataRegion: 'NORTH AMERICA',
+  },
+  {
+    id: 'south-america',
+    name: 'South America',
+    pin: '#b8892a',
+    cx: 720,
+    cy: 1060,
+    dataRegion: 'SOUTH AMERICA',
+  },
+  {
     id: 'europe',
     name: 'Europe',
     pin: '#b8892a',
-    cx: 1080,
-    cy: 200,
+    cx: 1300,
+    cy: 300,
     dataRegion: 'EUROPE',
-  },
-  {
-    id: 'east-asia',
-    name: 'East Asia',
-    pin: '#b8892a',
-    cx: 340,
-    cy: 260,
-    dataRegion: 'ASIA',
-  },
-  {
-    id: 'se-asia',
-    name: 'SE Asia',
-    pin: '#b8892a',
-    cx: 520,
-    cy: 1080,
-  },
-  {
-    id: 'americas',
-    name: 'Americas',
-    pin: '#b8892a',
-    cx: 1980,
-    cy: 540,
-    dataRegion: 'NORTH AMERICA',
   },
   {
     id: 'africa',
     name: 'Africa',
     pin: '#b8892a',
-    cx: 1240,
-    cy: 1140,
+    cx: 1400,
+    cy: 1020,
+    dataRegion: 'AFRICA',
   },
   {
-    id: 'middle-east',
-    name: 'Middle East',
+    id: 'asia',
+    name: 'Asia',
     pin: '#b8892a',
-    cx: 1920,
-    cy: 180,
+    cx: 2040,
+    cy: 380,
+    dataRegion: 'ASIA',
+  },
+  {
+    id: 'oceania',
+    name: 'Oceania',
+    pin: '#b8892a',
+    cx: 2220,
+    cy: 1080,
+    dataRegion: 'OCEANIA',
   },
 ]
 
 /** Offset country grids from each hub so clusters fan in different directions. */
 const GRID_OFFSET: Record<BoardRegionId, { dx: number; dy: number }> = {
-  'east-asia': { dx: 80, dy: 70 },
-  'se-asia': { dx: -50, dy: 85 },
+  'north-america': { dx: -20, dy: 68 },
+  'south-america': { dx: -50, dy: 85 },
   europe: { dx: -20, dy: 62 },
-  'middle-east': { dx: 70, dy: 75 },
   africa: { dx: 10, dy: 80 },
-  americas: { dx: -20, dy: 68 },
+  asia: { dx: 80, dy: 70 },
+  oceania: { dx: 70, dy: 75 },
 }
 
 /** Base card width for scrap clusters (px). */
 const CARD_BASE_W = 98
-const CARD_LAYOUT_H = 132
+const MOBILE_CARD_SCALE = 0.7
+const MOBILE_ROT_SPREAD = 12
 
 /** Grid step — slightly smaller than card size so polaroids overlap like a scrap board. */
 const SCRAP_STEP_X = 150
@@ -125,18 +129,30 @@ function scrapOffset(seed: string, salt: number, spread: number): number {
   return ((Math.abs(h) + salt) % (spread * 2 + 1)) - spread
 }
 
+export type BuildBoardOptions = {
+  mobile?: boolean
+}
+
 /** Tight, overlapping polaroid cluster around each region hub. */
 function layoutCountries(
   cards: CountryCardData[],
   cx: number,
   cy: number,
   regionId: BoardRegionId,
+  options?: BuildBoardOptions,
 ): BoardCountryLayout[] {
   const n = cards.length
   if (n === 0) return []
 
+  const mobile = options?.mobile ?? false
+  const cardBaseW = mobile ? Math.round(CARD_BASE_W * MOBILE_CARD_SCALE) : CARD_BASE_W
+  const rotSpread = mobile ? MOBILE_ROT_SPREAD : 9
+  const wJitter = mobile ? 4 : 6
+  const xSpread = mobile ? 22 : 16
+  const ySpread = mobile ? 20 : 14
+
   const cols = pickGridCols(n)
-  const gridW = (cols - 1) * SCRAP_STEP_X + CARD_BASE_W
+  const gridW = (cols - 1) * SCRAP_STEP_X + cardBaseW
   const { dx, dy } = GRID_OFFSET[regionId]
   const originX = cx - gridW / 2 + dx
   const originY = cy + dy
@@ -146,12 +162,18 @@ function layoutCountries(
     const row = Math.floor(i / cols)
     const rowStagger = row % 2 === 1 ? SCRAP_STEP_X * 0.38 : 0
     const [c1, c2] = countryPhotoColors(card.country)
-    const w = CARD_BASE_W + scrapOffset(card.country, i, 6)
+    // Card name renders in 11px mono; widen the card so the longest word never clips.
+    const longestWord = Math.max(
+      1,
+      ...card.displayName.split(/\s+/).map((word) => word.length),
+    )
+    const nameMinW = Math.ceil(longestWord * 6.8 + 16)
+    const w = Math.max(cardBaseW + scrapOffset(card.country, i, wJitter), nameMinW)
     return {
       card,
-      x: originX + col * SCRAP_STEP_X + rowStagger + scrapOffset(card.country, i * 3, 16),
-      y: originY + row * SCRAP_STEP_Y + scrapOffset(card.country, i * 5, 14),
-      rot: scrapOffset(card.country, i * 137, 9),
+      x: originX + col * SCRAP_STEP_X + rowStagger + scrapOffset(card.country, i * 3, xSpread),
+      y: originY + row * SCRAP_STEP_Y + scrapOffset(card.country, i * 5, ySpread),
+      rot: scrapOffset(card.country, i * 137, rotSpread),
       w,
       z: i + 1,
       c1,
@@ -160,28 +182,33 @@ function layoutCountries(
   })
 }
 
-/** World-space center for camera when focusing a region (includes country cards). */
+/** Visual height of a polaroid card from its layout width. */
+function cardLayoutHeight(c: BoardCountryLayout): number {
+  return Math.round(c.w * 0.75 + 34)
+}
+
+/** World-space center for camera when focusing a region (country cards only). */
 export function getRegionFocusPoint(region: BoardRegionLayout): { x: number; y: number } {
   if (region.countries.length === 0) {
     return { x: region.cx, y: region.cy }
   }
 
-  let minX = region.cx
-  let maxX = region.cx
-  let minY = region.cy
-  let maxY = region.cy
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
 
   for (const c of region.countries) {
     minX = Math.min(minX, c.x)
     maxX = Math.max(maxX, c.x + c.w)
     minY = Math.min(minY, c.y)
-    maxY = Math.max(maxY, c.y + CARD_LAYOUT_H)
+    maxY = Math.max(maxY, c.y + cardLayoutHeight(c))
   }
 
   return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
 }
 
-export function buildBoardRegions(): BoardRegionLayout[] {
+export function buildBoardRegions(options?: BuildBoardOptions): BoardRegionLayout[] {
   return BOARD_REGION_DEFS.map((def) => {
     const cards = def.dataRegion
       ? getCountryCardsForRegion(def.dataRegion)
@@ -194,9 +221,50 @@ export function buildBoardRegions(): BoardRegionLayout[] {
       cx: def.cx,
       cy: def.cy,
       dataRegion: def.dataRegion,
-      countries: layoutCountries(cards, def.cx, def.cy, def.id),
+      countries: layoutCountries(cards, def.cx, def.cy, def.id, options),
     }
+  }).filter((region) => region.countries.length > 0)
+}
+
+export function getRegionWithMostPlaces(
+  regions: BoardRegionLayout[],
+): BoardRegionLayout | null {
+  if (regions.length === 0) return null
+
+  const photoCount = (region: BoardRegionLayout) =>
+    region.countries.reduce((sum, country) => sum + country.card.photoCount, 0)
+
+  return regions.reduce((best, region) => {
+    const bestPhotos = photoCount(best)
+    const regionPhotos = photoCount(region)
+    if (regionPhotos > bestPhotos) return region
+    if (regionPhotos < bestPhotos) return best
+    if (region.countries.length > best.countries.length) return region
+    return best
   })
+}
+
+export function resolvePhotographyOpenRegion(
+  regions: BoardRegionLayout[],
+  options?: {
+    slideshowCountry?: string | null
+    activeRegionId?: BoardRegionId | null
+  },
+): BoardRegionLayout | null {
+  if (options?.slideshowCountry) {
+    for (const region of regions) {
+      if (region.countries.some((country) => country.card.country === options.slideshowCountry)) {
+        return region
+      }
+    }
+  }
+
+  if (options?.activeRegionId) {
+    const savedRegion = regions.find((region) => region.id === options.activeRegionId)
+    if (savedRegion) return savedRegion
+  }
+
+  return getRegionWithMostPlaces(regions)
 }
 
 export type SlideshowTarget = {

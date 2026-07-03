@@ -1,17 +1,19 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
-import { useTheme } from '../../../hooks/useTheme'
-import type { Theme } from '../../../hooks/useTheme'
-import { getPhotographyLightBoost } from '../../../hooks/themeTransition'
+import { useTheme } from '@/shared/hooks/useTheme'
+import type { Theme } from '@/shared/hooks/useTheme'
+import { getPhotographyLightBoost } from '@/shared/hooks/themeTransition'
 import {
   buildBoardRegions,
   getRegionFocusPoint,
+  resolvePhotographyOpenRegion,
   toSlideshowTarget,
   type BoardRegionId,
   type BoardCountryLayout,
@@ -20,8 +22,15 @@ import {
 } from './pinboardData'
 import { hasPinboardPhotoAssets } from './photographyPhotos'
 import { regionVisitedBarPercent } from './regionCountryTotals'
-import { debounce } from '../../../lib/debounce'
-import { PINBOARD_THEMES } from './pinboardThemes'
+import { debounce } from '@/shared/lib/debounce'
+import { preloadImage, preloadImages } from '@/shared/lib/preloadImage'
+import {
+  preloadCountryGallery,
+  preloadRegionGallery,
+  preloadSlideshowRemainder,
+} from './photographyPreload'
+import { PINBOARD_THEMES, MOBILE_BOARD_BASE } from './pinboardThemes'
+import { SlideshowPhoto } from './SlideshowPhoto'
 import {
   BOARD_H,
   BOARD_W,
@@ -29,8 +38,12 @@ import {
   drawPinboardBoard,
   drawPinboardLightOverlay,
   makePhotoSvg,
+  MOBILE_WORLD_SCALE,
 } from './pinboardUtils'
 import styles from './PhotographyPinboard.module.css'
+import mobileStyles from '../../portfolio/components/PhotographyMobile.module.css'
+import { PhotographyMobileRegionPills } from '../../portfolio/components/PhotographyMobileRegionPills'
+import { patchPortfolioSession, readPortfolioSession } from '../../portfolio/portfolioSessionState'
 
 const CAM_LERP = 0.11
 const FLY_DURATION_MS = 1180
@@ -100,9 +113,40 @@ type FlyAnimation = {
   startMs: number
 }
 
+const INERTIA_FRICTION = 0.92
+const INERTIA_MIN = 0.04
+const MIN_ZOOM_SCALE = 0.4
+const MAX_ZOOM_SCALE_DESKTOP = 1.75
+const MAX_ZOOM_SCALE_MOBILE = 1.2
+const WHEEL_ZOOM_SENSITIVITY = 0.004
+const SCALE_LERP = 0.18
+
+function maxZoomScale(isMobile: boolean): number {
+  return isMobile ? MAX_ZOOM_SCALE_MOBILE : MAX_ZOOM_SCALE_DESKTOP
+}
+
+function defaultZoomScale(isMobile: boolean): number {
+  return isMobile ? MOBILE_WORLD_SCALE : 1
+}
+
+function pointerDistance(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+): number {
+  return Math.hypot(a.x - b.x, a.y - b.y)
+}
+
+function pointerMidpoint(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+): { x: number; y: number } {
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+}
+
 type PhotographyPinboardProps = {
   active?: boolean
   theme?: Theme
+  variant?: 'desktop' | 'mobile'
   onReadyChange?: (ready: boolean) => void
 }
 
@@ -136,12 +180,18 @@ type CardEl = {
 export default function PhotographyPinboard({
   active = true,
   theme = 'dark',
+  variant = 'desktop',
   onReadyChange,
 }: PhotographyPinboardProps) {
+  const isMobile = variant === 'mobile'
   const { themeTransition } = useTheme()
   const themeTransitionRef = useRef(themeTransition)
-  const regions = useMemo(() => buildBoardRegions(), [])
+  const regions = useMemo(
+    () => buildBoardRegions(isMobile ? { mobile: true } : undefined),
+    [isMobile],
+  )
   const th = PINBOARD_THEMES[theme]
+  const boardBase = isMobile ? MOBILE_BOARD_BASE[theme] : th.boardBase
 
   useEffect(() => {
     themeTransitionRef.current = themeTransition
@@ -153,7 +203,21 @@ export default function PhotographyPinboard({
   const lightCanvasRef = useRef<HTMLCanvasElement>(null)
   const cardRefs = useRef<CardEl[]>([])
   const camRef = useRef({ x: 0, y: 0, tX: 0, tY: 0 })
+  const zoomRef = useRef({
+    scale: defaultZoomScale(isMobile),
+    tScale: defaultZoomScale(isMobile),
+  })
   const mouseRef = useRef({ x: BOARD_W / 2, y: BOARD_H / 2 })
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>())
+  const pinchRef = useRef({
+    active: false,
+    startDist: 0,
+    startScale: 1,
+    startCamX: 0,
+    startCamY: 0,
+    focalSx: 0,
+    focalSy: 0,
+  })
   const dragRef = useRef({
     active: false,
     didDrag: false,
@@ -166,9 +230,15 @@ export default function PhotographyPinboard({
   const interactingRef = useRef(false)
   const flyRef = useRef<FlyAnimation | null>(null)
   const didInitialFlyRef = useRef(false)
+  const initialViewStateAppliedRef = useRef(false)
+  const velocityRef = useRef({ vx: 0, vy: 0 })
+  const lastPointerRef = useRef({ x: 0, y: 0, t: 0 })
+  const inertiaRef = useRef({ active: false, vx: 0, vy: 0 })
 
   const [slideshow, setSlideshow] = useState<SlideshowTarget | null>(null)
+  const slideshowRef = useRef<SlideshowTarget | null>(null)
   const [slideIndex, setSlideIndex] = useState(0)
+  const [slideDirection, setSlideDirection] = useState<1 | -1>(1)
   const [activeRegionId, setActiveRegionId] = useState<BoardRegionId | null>(null)
   const [mounted, setMounted] = useState(false)
   const [legendMounted, setLegendMounted] = useState(false)
@@ -202,6 +272,57 @@ export default function PhotographyPinboard({
     () => [...regions].sort((a, b) => a.cy - b.cy),
     [regions],
   )
+
+  const regionFocusPoints = useMemo(
+    () =>
+      regions
+        .filter((r) => r.countries.length > 0)
+        .map((r) => ({ id: r.id, ...getRegionFocusPoint(r) })),
+    [regions],
+  )
+
+  const activeRegionIdRef = useRef<BoardRegionId | null>(null)
+  useEffect(() => {
+    activeRegionIdRef.current = activeRegionId
+  }, [activeRegionId])
+
+  useEffect(() => {
+    if (!active || !activeRegionId) return
+    const region = regions.find((r) => r.id === activeRegionId)
+    if (region) preloadRegionGallery(region)
+  }, [active, activeRegionId, regions])
+
+  const persistPhotographySession = useCallback(() => {
+    patchPortfolioSession({
+      photography: {
+        activeRegionId,
+        cam: { ...camRef.current },
+        zoom: {
+          scale: zoomRef.current.scale,
+          tScale: zoomRef.current.tScale,
+        },
+        slideshow: slideshow
+          ? {
+              country: slideshow.country,
+              slideIndex,
+              slideDirection,
+            }
+          : null,
+      },
+    })
+  }, [activeRegionId, slideshow, slideIndex, slideDirection])
+
+  useEffect(() => {
+    if (!active) return
+    persistPhotographySession()
+  }, [active, persistPhotographySession])
+
+  useEffect(() => {
+    if (!active) return
+    const onHide = () => persistPhotographySession()
+    window.addEventListener('pagehide', onHide)
+    return () => window.removeEventListener('pagehide', onHide)
+  }, [active, persistPhotographySession])
 
   const regionStaggerIndex = useMemo(() => {
     const indexByRegion = new Map<string, number>()
@@ -250,45 +371,71 @@ export default function PhotographyPinboard({
     [],
   )
 
+  const getCamBounds = useCallback((displayScale?: number) => {
+    const scale = displayScale ?? zoomRef.current.tScale
+    const w = rw()
+    const h = rh()
+    return {
+      scale,
+      maxX: Math.max(0, BOARD_W - w / scale),
+      maxY: Math.max(0, BOARD_H - h / scale),
+    }
+  }, [rw, rh])
+
   const cameraTargetFor = useCallback(
     (focusX: number, focusY: number) => {
       const w = rw()
       const h = rh()
-      const maxX = Math.max(0, BOARD_W - w)
-      const maxY = Math.max(0, BOARD_H - h)
+      const { scale, maxX, maxY } = getCamBounds()
+      const navOffsetWorld = isMobile ? 0 : 52 / scale
       return {
-        x: clamp(focusX - w / 2, 0, maxX),
-        y: clamp(focusY - h / 2, 0, maxY),
+        x: clamp(focusX - w / (2 * scale) - navOffsetWorld, 0, maxX),
+        y: clamp(focusY - h / (2 * scale), 0, maxY),
       }
     },
-    [rw, rh],
+    [getCamBounds, isMobile, rw, rh],
   )
+
+  const flyCameraTo = useCallback((toX: number, toY: number, instant = false) => {
+    const cam = camRef.current
+    cam.tX = toX
+    cam.tY = toY
+
+    if (instant) {
+      flyRef.current = null
+      cam.x = toX
+      cam.y = toY
+      return
+    }
+
+    flyRef.current = {
+      fromX: cam.x,
+      fromY: cam.y,
+      toX,
+      toY,
+      startMs: performance.now(),
+    }
+  }, [])
 
   const flyToRegion = useCallback(
     (region: BoardRegionLayout, instant = false) => {
       const focus = getRegionFocusPoint(region)
       const { x: toX, y: toY } = cameraTargetFor(focus.x, focus.y)
-      const cam = camRef.current
-      cam.tX = toX
-      cam.tY = toY
       setActiveRegionId(region.id)
-
-      if (instant) {
-        flyRef.current = null
-        cam.x = toX
-        cam.y = toY
-        return
-      }
-
-      flyRef.current = {
-        fromX: cam.x,
-        fromY: cam.y,
-        toX,
-        toY,
-        startMs: performance.now(),
-      }
+      preloadRegionGallery(region)
+      flyCameraTo(toX, toY, instant)
     },
-    [cameraTargetFor],
+    [cameraTargetFor, flyCameraTo],
+  )
+
+  const flyToBoardCenter = useCallback(
+    (instant = false) => {
+      const { scale, maxX, maxY } = getCamBounds()
+      const toX = clamp(BOARD_W / 2 - rw() / (2 * scale), 0, maxX)
+      const toY = clamp(BOARD_H / 2 - rh() / (2 * scale), 0, maxY)
+      flyCameraTo(toX, toY, instant)
+    },
+    [flyCameraTo, getCamBounds, rw, rh],
   )
 
   useEffect(() => {
@@ -300,7 +447,15 @@ export default function PhotographyPinboard({
       return
     }
 
-    const skipFullEntrance = shouldSkipFullPhotoEntrance()
+    if (entranceCompleteRef.current) {
+      setMounted(true)
+      setFloating(true)
+      setLegendMounted(true)
+      return
+    }
+
+    const skipFullEntrance =
+      shouldSkipFullPhotoEntrance() || Boolean(readPortfolioSession()?.photography)
 
     if (skipFullEntrance) {
       setMounted(true)
@@ -341,6 +496,7 @@ export default function PhotographyPinboard({
   useEffect(() => {
     if (!active) {
       didInitialFlyRef.current = false
+      initialViewStateAppliedRef.current = false
       onReadyChange?.(false)
       return
     }
@@ -349,19 +505,98 @@ export default function PhotographyPinboard({
       canvas.width = BOARD_W
       canvas.height = BOARD_H
       const ctx = canvas.getContext('2d')
-      if (ctx) drawPinboardBoard(ctx, th.boardBase)
+      if (ctx) {
+        drawPinboardBoard(ctx, boardBase, {
+          highContrast: isMobile,
+        })
+      }
     }
     onReadyChange?.(true)
-  }, [active, theme, th.boardBase, onReadyChange])
+  }, [active, theme, boardBase, isMobile, onReadyChange])
 
-  useEffect(() => {
-    if (!active || didInitialFlyRef.current) return
-    didInitialFlyRef.current = true
-    const first = regions[0]
-    if (first) {
-      flyToRegion(first, true)
+  useLayoutEffect(() => {
+    if (!active) return
+
+    let settleTimer: number | undefined
+
+    const applyInitialView = () => {
+      if (didInitialFlyRef.current) return false
+
+      const frame = frameRef.current
+      if (!frame || frame.clientWidth < 2 || frame.clientHeight < 2) return false
+
+      const photoSession = readPortfolioSession()?.photography
+      if (!initialViewStateAppliedRef.current) {
+        if (photoSession?.zoom) {
+          zoomRef.current.scale = photoSession.zoom.scale
+          zoomRef.current.tScale = photoSession.zoom.tScale
+        }
+
+        if (photoSession?.slideshow) {
+          const { country, slideIndex: savedIndex, slideDirection: savedDir } =
+            photoSession.slideshow
+          for (const region of regions) {
+            const layout = region.countries.find((c) => c.card.country === country)
+            if (layout) {
+              setSlideshow(toSlideshowTarget(layout, region.name))
+              setSlideIndex(savedIndex)
+              setSlideDirection(savedDir)
+              flyToRegion(region, true)
+              initialViewStateAppliedRef.current = true
+              break
+            }
+          }
+        }
+
+        initialViewStateAppliedRef.current = true
+      }
+
+      let targetRegion: BoardRegionLayout | null = null
+      if (photoSession?.slideshow) {
+        const country = photoSession.slideshow.country
+        targetRegion =
+          regions.find((region) =>
+            region.countries.some((layout) => layout.card.country === country),
+          ) ?? null
+      } else if (photoSession?.activeRegionId) {
+        targetRegion =
+          regions.find((region) => region.id === photoSession.activeRegionId) ?? null
+      }
+
+      if (!targetRegion) {
+        targetRegion = resolvePhotographyOpenRegion(regions, {
+          activeRegionId: photoSession?.activeRegionId,
+        })
+      }
+
+      if (targetRegion) {
+        flyToRegion(targetRegion, true)
+      }
+
+      if (settleTimer !== undefined) window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(() => {
+        didInitialFlyRef.current = true
+        settleTimer = undefined
+      }, 320)
+
+      return true
     }
-  }, [active, regions, flyToRegion])
+
+    applyInitialView()
+
+    const frame = frameRef.current
+    if (!frame) return
+
+    const observer = new ResizeObserver(() => {
+      applyInitialView()
+    })
+    observer.observe(frame)
+
+    return () => {
+      observer.disconnect()
+      if (settleTimer !== undefined) window.clearTimeout(settleTimer)
+    }
+  }, [active, flyToRegion, regions])
 
   useEffect(() => {
     if (!active) return
@@ -418,16 +653,59 @@ export default function PhotographyPinboard({
           flyRef.current = null
         }
       } else {
+        if (inertiaRef.current.active && !dragRef.current.active) {
+          const { maxX, maxY } = getCamBounds()
+          cam.tX = clamp(cam.tX + inertiaRef.current.vx, 0, maxX)
+          cam.tY = clamp(cam.tY + inertiaRef.current.vy, 0, maxY)
+          inertiaRef.current.vx *= INERTIA_FRICTION
+          inertiaRef.current.vy *= INERTIA_FRICTION
+          if (
+            Math.abs(inertiaRef.current.vx) + Math.abs(inertiaRef.current.vy) <
+            INERTIA_MIN
+          ) {
+            inertiaRef.current.active = false
+          }
+        }
         cam.x += (cam.tX - cam.x) * CAM_LERP
         cam.y += (cam.tY - cam.y) * CAM_LERP
       }
+      const zoom = zoomRef.current
+      zoom.scale += (zoom.tScale - zoom.scale) * SCALE_LERP
       const world = worldRef.current
+      const { scale } = getCamBounds(zoom.scale)
       if (world) {
-        world.style.transform = `translate3d(${-Math.round(cam.x)}px,${-Math.round(cam.y)}px,0)`
+        world.style.transformOrigin = '0 0'
+        world.style.transform = `scale(${scale}) translate3d(${-cam.x}px,${-cam.y}px,0)`
+      }
+
+      if (
+        isMobile &&
+        !fly &&
+        (dragRef.current.active || inertiaRef.current.active) &&
+        regionFocusPoints.length > 0
+      ) {
+        const viewCx = cam.x + rw() / (2 * scale)
+        const viewCy = cam.y + rh() / (2 * scale)
+        let nearestId = regionFocusPoints[0].id
+        let nearestDist = Infinity
+        for (const fp of regionFocusPoints) {
+          const dx = fp.x - viewCx
+          const dy = fp.y - viewCy
+          const dist = dx * dx + dy * dy
+          if (dist < nearestDist) {
+            nearestDist = dist
+            nearestId = fp.id
+          }
+        }
+        if (nearestId !== activeRegionIdRef.current) {
+          activeRegionIdRef.current = nearestId
+          setActiveRegionId(nearestId)
+        }
       }
 
       const cardShadow = th.cardShadow
       const applyTilt =
+        !isMobile &&
         entranceCompleteRef.current &&
         !prefersReducedMotion() &&
         (interactingRef.current || dragRef.current.active)
@@ -439,7 +717,9 @@ export default function PhotographyPinboard({
           card.tiltY = 0
           card.lift = 0
           el.style.transform = `rotate(${c.rot}deg)`
-          el.style.boxShadow = `3px 3px 0 ${cardShadow}`
+          el.style.boxShadow = isMobile
+            ? `0 4px 14px ${cardShadow}`
+            : `3px 3px 0 ${cardShadow}`
           continue
         }
         const dx = mouseRef.current.x - (c.x + c.w / 2)
@@ -461,57 +741,231 @@ export default function PhotographyPinboard({
     }
     rafRef.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafRef.current)
-  }, [active, th.cardShadow])
+  }, [active, th.cardShadow, isMobile, getCamBounds, regionFocusPoints, rw, rh])
 
   const updateMouse = useCallback(
     (clientX: number, clientY: number) => {
       const frame = frameRef.current
       if (!frame) return
       const rect = frame.getBoundingClientRect()
+      const scale = zoomRef.current.scale
       mouseRef.current = {
-        x: clientX - rect.left + camRef.current.x,
-        y: clientY - rect.top + camRef.current.y,
+        x: (clientX - rect.left) / scale + camRef.current.x,
+        y: (clientY - rect.top) / scale + camRef.current.y,
       }
     },
     [],
   )
 
+  const zoomAtScreenPoint = useCallback(
+    (newScale: number, clientX: number, clientY: number) => {
+      const frame = frameRef.current
+      const cam = camRef.current
+      const zoom = zoomRef.current
+      if (!frame) return
+
+      const clampedScale = clamp(newScale, MIN_ZOOM_SCALE, maxZoomScale(isMobile))
+      const oldScale = zoom.tScale
+      if (clampedScale === oldScale) return
+
+      const rect = frame.getBoundingClientRect()
+      const sx = clientX - rect.left
+      const sy = clientY - rect.top
+      const { maxX, maxY } = getCamBounds(clampedScale)
+
+      cam.tX = clamp(cam.tX + sx * (1 / oldScale - 1 / clampedScale), 0, maxX)
+      cam.tY = clamp(cam.tY + sy * (1 / oldScale - 1 / clampedScale), 0, maxY)
+      zoom.tScale = clampedScale
+    },
+    [getCamBounds, isMobile],
+  )
+
+  const beginPinch = useCallback(() => {
+    const frame = frameRef.current
+    if (!frame) return
+    const pts = [...pointersRef.current.values()]
+    if (pts.length < 2) return
+
+    const [a, b] = [pts[0], pts[1]]
+    const mid = pointerMidpoint(a, b)
+    const rect = frame.getBoundingClientRect()
+    const cam = camRef.current
+    const zoom = zoomRef.current
+
+    pinchRef.current = {
+      active: true,
+      startDist: pointerDistance(a, b),
+      startScale: zoom.tScale,
+      startCamX: cam.tX,
+      startCamY: cam.tY,
+      focalSx: mid.x - rect.left,
+      focalSy: mid.y - rect.top,
+    }
+    flyRef.current = null
+    inertiaRef.current.active = false
+    dragRef.current.active = false
+  }, [])
+
+  const updatePinch = useCallback(() => {
+    const pinch = pinchRef.current
+    if (!pinch.active) return
+    const pts = [...pointersRef.current.values()]
+    if (pts.length < 2) return
+
+    const [a, b] = [pts[0], pts[1]]
+    const dist = pointerDistance(a, b)
+    if (pinch.startDist < 1) return
+
+    const newScale = clamp(
+      pinch.startScale * (dist / pinch.startDist),
+      MIN_ZOOM_SCALE,
+      maxZoomScale(isMobile),
+    )
+    const { maxX, maxY } = getCamBounds(newScale)
+    const wx = pinch.startCamX + pinch.focalSx / pinch.startScale
+    const wy = pinch.startCamY + pinch.focalSy / pinch.startScale
+
+    camRef.current.tX = clamp(wx - pinch.focalSx / newScale, 0, maxX)
+    camRef.current.tY = clamp(wy - pinch.focalSy / newScale, 0, maxY)
+    zoomRef.current.tScale = newScale
+    if (Math.abs(newScale - pinch.startScale) > 0.01) {
+      dragRef.current.didDrag = true
+    }
+  }, [getCamBounds, isMobile])
+
+  useEffect(() => {
+    slideshowRef.current = slideshow
+    if (!slideshow) return
+    dragRef.current.active = false
+    dragRef.current.didDrag = false
+    interactingRef.current = false
+    inertiaRef.current.active = false
+    pinchRef.current.active = false
+    pointersRef.current.clear()
+  }, [slideshow])
+
   const onPointerDown = useCallback(
     (e: ReactPointerEvent) => {
+      if (slideshowRef.current) return
       if (e.button !== 0) return
-      interactingRef.current = true
-      flyRef.current = null
-      dragRef.current = {
-        active: true,
-        didDrag: false,
-        sx: e.clientX,
-        sy: e.clientY,
-        cx: camRef.current.tX,
-        cy: camRef.current.tY,
-      }
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
       frameRef.current?.setPointerCapture(e.pointerId)
+
+      if (pointersRef.current.size === 1) {
+        interactingRef.current = true
+        flyRef.current = null
+        inertiaRef.current.active = false
+        lastPointerRef.current = { x: e.clientX, y: e.clientY, t: performance.now() }
+        velocityRef.current = { vx: 0, vy: 0 }
+        dragRef.current = {
+          active: true,
+          didDrag: false,
+          sx: e.clientX,
+          sy: e.clientY,
+          cx: camRef.current.tX,
+          cy: camRef.current.tY,
+        }
+      } else if (pointersRef.current.size === 2) {
+        beginPinch()
+      }
     },
-    [],
+    [beginPinch],
   )
 
   const onPointerMove = useCallback(
     (e: ReactPointerEvent) => {
+      if (slideshowRef.current) return
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
       updateMouse(e.clientX, e.clientY)
+
+      if (pointersRef.current.size >= 2 && pinchRef.current.active) {
+        updatePinch()
+        return
+      }
+
       const d = dragRef.current
       if (!d.active) return
       const dx = e.clientX - d.sx
       const dy = e.clientY - d.sy
       if (Math.abs(dx) + Math.abs(dy) > 4) d.didDrag = true
-      camRef.current.tX = clamp(d.cx - dx, 0, Math.max(0, BOARD_W - rw()))
-      camRef.current.tY = clamp(d.cy - dy, 0, Math.max(0, BOARD_H - rh()))
+      const now = performance.now()
+      const dt = now - lastPointerRef.current.t
+      if (dt > 0 && dt < 48) {
+        velocityRef.current = {
+          vx: (e.clientX - lastPointerRef.current.x) / dt,
+          vy: (e.clientY - lastPointerRef.current.y) / dt,
+        }
+      }
+      lastPointerRef.current = { x: e.clientX, y: e.clientY, t: now }
+      const { scale, maxX, maxY } = getCamBounds()
+      camRef.current.tX = clamp(d.cx - dx / scale, 0, maxX)
+      camRef.current.tY = clamp(d.cy - dy / scale, 0, maxY)
     },
-    [updateMouse, rw, rh],
+    [updateMouse, getCamBounds, updatePinch],
   )
 
-  const onPointerUp = useCallback(() => {
-    dragRef.current.active = false
-    interactingRef.current = false
-  }, [])
+  const onPointerUp = useCallback(
+    (e: ReactPointerEvent) => {
+      if (slideshowRef.current) {
+        pointersRef.current.delete(e.pointerId)
+        return
+      }
+      pointersRef.current.delete(e.pointerId)
+      try {
+        frameRef.current?.releasePointerCapture(e.pointerId)
+      } catch {
+        /* already released */
+      }
+
+      if (pointersRef.current.size < 2) {
+        pinchRef.current.active = false
+      }
+
+      if (pointersRef.current.size === 0) {
+        dragRef.current.active = false
+        interactingRef.current = false
+        if (isMobile) {
+          const { vx, vy } = velocityRef.current
+          const speed = Math.abs(vx) + Math.abs(vy)
+          if (speed > 0.12) {
+            const { scale } = getCamBounds()
+            inertiaRef.current = {
+              active: true,
+              vx: (-vx * 14) / scale,
+              vy: (-vy * 14) / scale,
+            }
+          }
+        }
+      } else if (pointersRef.current.size === 1) {
+        const remaining = [...pointersRef.current.entries()][0]
+        if (remaining) {
+          const [, pt] = remaining
+          dragRef.current = {
+            active: true,
+            didDrag: false,
+            sx: pt.x,
+            sy: pt.y,
+            cx: camRef.current.tX,
+            cy: camRef.current.tY,
+          }
+        }
+      }
+    },
+    [isMobile, getCamBounds],
+  )
+
+  const focusMobileRegion = useCallback(
+    (id: BoardRegionId | null) => {
+      setActiveRegionId(id)
+      if (id === null) {
+        flyToBoardCenter(false)
+        return
+      }
+      const region = regions.find((r) => r.id === id)
+      if (region) flyToRegion(region, false)
+    },
+    [regions, flyToRegion, flyToBoardCenter],
+  )
 
   const onPointerEnter = useCallback(() => {
     interactingRef.current = true
@@ -524,8 +978,10 @@ export default function PhotographyPinboard({
 
   const openSlideshow = useCallback(
     (layout: BoardCountryLayout, region: BoardRegionLayout) => {
+      preloadCountryGallery(layout.card.photos)
       setSlideshow(toSlideshowTarget(layout, region.name))
       setSlideIndex(0)
+      setSlideDirection(1)
     },
     [],
   )
@@ -536,14 +992,27 @@ export default function PhotographyPinboard({
     dragRef.current.didDrag = false
   }, [])
 
+  const onSlideshowControlPointerDown = useCallback((e: ReactPointerEvent) => {
+    e.stopPropagation()
+    dragRef.current.active = false
+    dragRef.current.didDrag = false
+    inertiaRef.current.active = false
+  }, [])
+
+  const stopSlideshowPointer = useCallback((e: ReactPointerEvent) => {
+    e.stopPropagation()
+  }, [])
+
   const closeSlideshow = useCallback(() => {
     setSlideshow(null)
     setSlideIndex(0)
+    setSlideDirection(1)
   }, [])
 
   const ssNav = useCallback(
     (dir: number) => {
       if (!slideshow) return
+      setSlideDirection(dir > 0 ? 1 : -1)
       setSlideIndex((i) =>
         Math.max(0, Math.min(slideshow.photos.length - 1, i + dir)),
       )
@@ -565,6 +1034,18 @@ export default function PhotographyPinboard({
     return () => window.removeEventListener('keydown', onKey)
   }, [slideshow, closeSlideshow, ssNav])
 
+  // Warm nearby slides whenever the viewer moves through a gallery.
+  useEffect(() => {
+    if (!slideshow) return
+    const sources: (string | null)[] = []
+    for (let i = slideIndex - 2; i <= slideIndex + 8; i++) {
+      if (i < 0 || i >= slideshow.photos.length) continue
+      sources.push(slideshow.photos[i]?.src ?? null)
+    }
+    preloadImages(sources)
+    preloadSlideshowRemainder(slideshow.photos)
+  }, [slideshow, slideIndex])
+
   const registerCard = useCallback(
     (
       countryKey: string,
@@ -582,17 +1063,39 @@ export default function PhotographyPinboard({
     if (!active) return
     const onResize = debounce(() => {
       const cam = camRef.current
-      cam.tX = clamp(cam.tX, 0, Math.max(0, BOARD_W - rw()))
-      cam.tY = clamp(cam.tY, 0, Math.max(0, BOARD_H - rh()))
+      const { maxX, maxY } = getCamBounds()
+      cam.tX = clamp(cam.tX, 0, maxX)
+      cam.tY = clamp(cam.tY, 0, maxY)
     }, 120)
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [active, rw, rh])
+  }, [active, getCamBounds])
+
+  useEffect(() => {
+    const frame = frameRef.current
+    if (!active || !frame) return
+
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return
+      e.preventDefault()
+      flyRef.current = null
+      inertiaRef.current.active = false
+      const factor = Math.exp(-e.deltaY * WHEEL_ZOOM_SENSITIVITY)
+      zoomAtScreenPoint(zoomRef.current.tScale * factor, e.clientX, e.clientY)
+    }
+
+    frame.addEventListener('wheel', onWheel, { passive: false })
+    return () => frame.removeEventListener('wheel', onWheel)
+  }, [active, zoomAtScreenPoint])
 
   const currentPhoto = slideshow?.photos[slideIndex]
   const slideCaption = currentPhoto
     ? `${currentPhoto.city} · ${currentPhoto.year}`
     : ''
+
+  const activeRegion = activeRegionId
+    ? regions.find((r) => r.id === activeRegionId)
+    : null
 
   if (!active) return null
 
@@ -603,9 +1106,9 @@ export default function PhotographyPinboard({
     >
       <div
         ref={frameRef}
-        className={`${styles.frame} ${styles.frameEntrance}`}
+        className={`${styles.frame} ${styles.frameEntrance}${isMobile ? ` ${styles.frameMobile}` : ''}`}
         style={{
-          backgroundColor: th.boardBase,
+          backgroundColor: boardBase,
           opacity: mounted ? 1 : 0,
         }}
         onPointerDown={onPointerDown}
@@ -634,6 +1137,7 @@ export default function PhotographyPinboard({
         />
 
         {sortedRegions.map((r) => {
+          if (isMobile) return null
           const regionIndex = regionStaggerIndex.get(r.id) ?? 0
           const regionDelay = regionLabelBaseDelay + regionIndex * STAGGER_REGION_MS
 
@@ -684,10 +1188,7 @@ export default function PhotographyPinboard({
         {regions.flatMap((r, ri) =>
           r.countries.map((c, ci) => {
             const imgH = Math.round(c.w * 0.75)
-            const sub =
-              c.card.cities.length > 0
-                ? `${c.card.cities.slice(0, 2).join(' · ')} · ${c.card.photoCount} photos`
-                : `${c.card.photoCount} photo${c.card.photoCount === 1 ? '' : 's'}`
+            const sub = `${c.card.photoCount} photo${c.card.photoCount === 1 ? '' : 's'}`
             const staggerIndex = cardStaggerIndex.get(c.card.country) ?? 0
             const cardDelay = cardBaseDelay + staggerIndex * STAGGER_CARD_MS
             const floatDuration = `${3 + (staggerIndex % 5) * 0.4}s`
@@ -705,7 +1206,7 @@ export default function PhotographyPinboard({
                 }}
               >
                 <div
-                  className={`${styles.cardMotion} ${styles.cardEntrance}${floating ? ` ${styles.cardFloatActive}` : ''}`}
+                  className={`${styles.cardMotion} ${styles.cardEntrance}${floating ? ` ${styles.cardFloatActive}` : ''}${isMobile ? ` ${styles.cardMotionMobile}` : ''}`}
                   style={{
                     ['--float-duration' as string]: floatDuration,
                     ['--float-delay' as string]: floatDelay,
@@ -723,13 +1224,23 @@ export default function PhotographyPinboard({
                 <button
                   type="button"
                   ref={(el) => registerCard(c.card.country, c, r, el)}
-                  className={styles.card}
+                  className={`${styles.card}${isMobile ? ` ${styles.cardMobile}` : ''}`}
                   style={{
                     background: th.cardBg,
-                    boxShadow: `3px 3px 0 ${th.cardShadow}`,
+                    boxShadow: isMobile
+                      ? `0 4px 14px ${th.cardShadow}`
+                      : `3px 3px 0 ${th.cardShadow}`,
                     transform: `rotate(${c.rot}deg)`,
                   }}
-                  onPointerDown={onCardPointerDown}
+                  onPointerDown={(e) => {
+                    onCardPointerDown(e)
+                    preloadCountryGallery(c.card.photos)
+                  }}
+                  onPointerEnter={() => {
+                    const firstSrc =
+                      c.card.previewPhoto?.src ?? c.card.photos.find((photo) => photo.src)?.src
+                    if (firstSrc) void preloadImage(firstSrc)
+                  }}
                   onPointerUp={(e) => e.stopPropagation()}
                   onPointerCancel={(e) => e.stopPropagation()}
                   onClick={(e) => {
@@ -739,9 +1250,9 @@ export default function PhotographyPinboard({
                   aria-label={`View photos from ${c.card.displayName}`}
                 >
                   <div
-                    className={styles.pin}
+                    className={`${styles.pin}${isMobile ? ` ${styles.pinMobile}` : ''}`}
                     style={{
-                      background: r.pin,
+                      background: isMobile ? '#c9a227' : r.pin,
                       transform: 'translateX(-50%) scale(1)',
                     }}
                   />
@@ -772,7 +1283,10 @@ export default function PhotographyPinboard({
                       }}
                     />
                   )}
-                  <span className={styles.cardName} style={{ color: th.cardName }}>
+                  <span
+                    className={`${styles.cardName}${isMobile ? ` ${styles.cardNameMobile}` : ''}`}
+                    style={{ color: th.cardName }}
+                  >
                     {c.card.displayName}
                   </span>
                   <span className={styles.cardSub} style={{ color: th.cardSub }}>
@@ -785,6 +1299,7 @@ export default function PhotographyPinboard({
           }),
         )}
 
+        {!isMobile ? (
         <svg
           className={styles.stringSvg}
           width={BOARD_W}
@@ -840,6 +1355,7 @@ export default function PhotographyPinboard({
             )
           })}
         </svg>
+        ) : null}
         </div>
 
         <canvas
@@ -861,14 +1377,38 @@ export default function PhotographyPinboard({
               transitionDelay: `${lastCardDelay + 240}ms`,
             }}
           >
-            <p className="photography-coming-soon-label">gallery</p>
-            <p className="photography-coming-soon-title">photos coming soon</p>
+            <p className="photography-coming-soon-label">Gallery</p>
+            <p className="photography-coming-soon-title">Photos coming soon</p>
             <p className="photography-coming-soon-note">
-              places mapped · images on the way
+              Places mapped · images on the way
             </p>
           </div>
         ) : null}
 
+        {isMobile ? (
+          <>
+            <div className={mobileStyles.regionPill} aria-live="polite">
+              <span
+                className={mobileStyles.regionPillDot}
+                style={{ background: activeRegion?.pin ?? '#b8892a' }}
+              />
+              {activeRegion ? activeRegion.name : 'All'}
+              <span className={mobileStyles.regionPillFrac}>
+                {activeRegion
+                  ? `${activeRegion.countries.length}/${activeRegion.total}`
+                  : `${regions.reduce((s, r) => s + r.countries.length, 0)}/${regions.reduce((s, r) => s + r.total, 0)}`}
+              </span>
+            </div>
+
+            <PhotographyMobileRegionPills
+              theme={theme}
+              regions={regions}
+              activeRegionId={activeRegionId}
+              onSelectRegion={focusMobileRegion}
+            />
+          </>
+        ) : (
+          <>
         <div
           className={`${styles.hud} ${styles.hudEntrance}`}
           style={{
@@ -879,7 +1419,7 @@ export default function PhotographyPinboard({
             transitionDelay: `${lastCardDelay + 180}ms`,
           }}
         >
-          <span>drag to explore · click a card</span>
+          <span>Drag to explore · click a card</span>
         </div>
 
         <nav
@@ -897,7 +1437,7 @@ export default function PhotographyPinboard({
           className={styles.rnHeader}
           style={{ borderBottomColor: th.navBorder }}
         >
-          <span style={{ color: th.navHeader }}>regions</span>
+          <span style={{ color: th.navHeader }}>Regions</span>
         </div>
         {regions.map((r) => {
           const visited = r.countries.length
@@ -953,9 +1493,11 @@ export default function PhotographyPinboard({
           )
         })}
         </nav>
+          </>
+        )}
 
         <div
-          className={`${styles.overlay}${slideshow ? ` ${styles.overlayOpen}` : ''}`}
+          className={`${styles.overlay}${slideshow ? ` ${styles.overlayOpen}` : ''}${isMobile ? ` ${styles.overlayMobile}` : ''}`}
         role="dialog"
         aria-modal={slideshow ? true : undefined}
         aria-hidden={!slideshow}
@@ -965,11 +1507,14 @@ export default function PhotographyPinboard({
         onClick={(e) => {
           if (e.target === e.currentTarget) closeSlideshow()
         }}
-        onPointerDown={(e) => e.stopPropagation()}
+        onPointerDown={stopSlideshowPointer}
+        onPointerMove={stopSlideshowPointer}
+        onPointerUp={stopSlideshowPointer}
+        onPointerCancel={stopSlideshowPointer}
       >
         {slideshow ? (
           <div
-            className={styles.slideshow}
+            className={`${styles.slideshow}${isMobile ? ` ${styles.slideshowMobile}` : ''}`}
             style={{
               background: th.ssBg,
               ['--ss-border' as string]: th.ssBorder,
@@ -979,13 +1524,18 @@ export default function PhotographyPinboard({
               ['--ss-control-icon' as string]: th.ssControlIcon,
             }}
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={stopSlideshowPointer}
+            onPointerMove={stopSlideshowPointer}
+            onPointerUp={stopSlideshowPointer}
+            onPointerCancel={stopSlideshowPointer}
           >
             <div className={styles.ssImgWrap}>
               {currentPhoto?.src ? (
-                <img
+                <SlideshowPhoto
+                  key={slideshow.displayName}
                   src={currentPhoto.src}
                   alt={slideCaption}
-                  className={styles.ssImg}
+                  direction={slideDirection}
                 />
               ) : (
                 <svg
@@ -1006,6 +1556,9 @@ export default function PhotographyPinboard({
                   color: th.ssControlIcon,
                   background: th.ssControlBg,
                 }}
+                onPointerDown={onSlideshowControlPointerDown}
+                onPointerUp={stopSlideshowPointer}
+                onPointerCancel={stopSlideshowPointer}
                 onClick={() => ssNav(-1)}
               >
                 <ChevronIcon dir="prev" />
@@ -1019,6 +1572,9 @@ export default function PhotographyPinboard({
                   color: th.ssControlIcon,
                   background: th.ssControlBg,
                 }}
+                onPointerDown={onSlideshowControlPointerDown}
+                onPointerUp={stopSlideshowPointer}
+                onPointerCancel={stopSlideshowPointer}
                 onClick={() => ssNav(1)}
               >
                 <ChevronIcon dir="next" />
@@ -1031,26 +1587,28 @@ export default function PhotographyPinboard({
                   color: th.ssControlIcon,
                   background: th.ssControlBg,
                 }}
+                onPointerDown={onSlideshowControlPointerDown}
+                onPointerUp={stopSlideshowPointer}
+                onPointerCancel={stopSlideshowPointer}
                 onClick={closeSlideshow}
               >
                 <CloseIcon />
               </button>
             </div>
             {slideshow.photos.length > 1 ? (
-              <div className={styles.ssDots}>
-                {slideshow.photos.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className={styles.ssDot}
+              <div className={styles.ssDotsProgress} aria-hidden>
+                <div
+                  className={styles.ssDotsProgressTrack}
+                  style={{ background: th.ssDotInactive }}
+                >
+                  <div
+                    className={styles.ssDotsProgressFill}
                     style={{
-                      background:
-                        i === slideIndex ? th.ssDotActive : th.ssDotInactive,
+                      background: th.ssDotActive,
+                      width: `${((slideIndex + 1) / slideshow.photos.length) * 100}%`,
                     }}
-                    aria-label={`Photo ${i + 1}`}
-                    onClick={() => setSlideIndex(i)}
                   />
-                ))}
+                </div>
               </div>
             ) : null}
             <div className={styles.ssBody}>
@@ -1064,9 +1622,6 @@ export default function PhotographyPinboard({
                 {slideshow.photos.length > 0
                   ? `${slideIndex + 1} / ${slideshow.photos.length}`
                   : ''}
-              </span>
-              <span className={styles.ssCaption} style={{ color: th.ssCaption }}>
-                {slideCaption || 'Photo coming soon'}
               </span>
             </div>
           </div>
