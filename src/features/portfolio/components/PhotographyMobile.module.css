@@ -1,0 +1,248 @@
+.photoMobile {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
+  background: var(--photo-mobile-bg, #0c0b0a);
+}
+
+.photoMobile[data-photo-theme='light'] {
+  --photo-mobile-bg: #e8e2d6;
+  --photo-sheet-bg: #f0ede6;
+  --photo-sheet-border: rgba(0, 0, 0, 0.08);
+  --photo-sheet-text: #1c1c1e;
+  --photo-sheet-muted: rgba(28, 28, 30, 0.55);
+  --photo-sheet-bar-bg: rgba(28, 28, 30, 0.1);
+  --photo-sheet-hover: rgba(184, 137, 42, 0.1);
+  --photo-pill-bg: rgba(250, 248, 244, 0.72);
+  --photo-pill-border: rgba(0, 0, 0, 0.1);
+  --photo-pill-text: #1c1c1e;
+  --photo-hint: rgba(28, 28, 30, 0.45);
+  --photo-hint-pill-bg: rgba(250, 248, 244, 0.35);
+  --photo-hint-pill-border: rgba(0, 0, 0, 0.06);
+}
+
+.photoMobile[data-photo-theme='dark'] {
+  --photo-mobile-bg: #0c0b0a;
+  --photo-sheet-bg: #1a1a1a;
+  --photo-sheet-border: rgba(255, 255, 255, 0.08);
+  --photo-sheet-text: #f5f5f7;
+  --photo-sheet-muted: rgba(245, 245, 247, 0.55);
+  --photo-sheet-bar-bg: rgba(245, 245, 247, 0.12);
+  --photo-sheet-hover: rgba(184, 137, 42, 0.16);
+  --photo-pill-bg: rgba(26, 26, 30, 0.62);
+  --photo-pill-border: rgba(255, 255, 255, 0.12);
+  --photo-pill-text: #f5f5f7;
+  --photo-hint: rgba(245, 245, 247, 0.42);
+  --photo-hint-pill-bg: rgba(26, 26, 30, 0.35);
+  --photo-hint-pill-border: rgba(255, 255, 255, 0.08);
+}
+
+.photoStage {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+.photoStage .photography-page,
+.photoStage .photography-stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── Active region pill (top center) ── */
+.regionPill {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--photo-pill-border);
+  background: var(--photo-pill-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--photo-pill-text);
+  white-space: nowrap;
+}
+
+.regionPillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.regionPillFrac {
+  opacity: 0.65;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* ── Explore hint (above region pills) ── */
+.exploreHintPill {
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--photo-hint-pill-border);
+  background: var(--photo-hint-pill-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--photo-hint);
+  white-space: nowrap;
+}
+
+/* ── Swipeable region status pills ── */
+.pillStripWrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.pillStrip {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0 6px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  pointer-events: auto;
+  touch-action: pan-x;
+}
+
+.pillStripNoSnap {
+  scroll-snap-type: none;
+}
+
+.pillStripSpacer {
+  flex-shrink: 0;
+  height: 1px;
+  scroll-snap-align: none;
+  pointer-events: none;
+}
+
+.pillStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.statusPill {
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 148px;
+  padding: 10px 14px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--photo-pill-border);
+  background: var(--photo-pill-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  text-align: left;
+  color: var(--photo-pill-text);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.statusPillActive {
+  border-color: color-mix(in srgb, #b8892a 45%, var(--photo-pill-border));
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.22),
+    0 0 0 1px color-mix(in srgb, #b8892a 18%, transparent);
+}
+
+.statusPillRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.statusPillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusPillName {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusPillFrac {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  opacity: 0.65;
+  flex-shrink: 0;
+}
+
+.statusPillBarWrap {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--photo-sheet-bar-bg, rgba(255, 255, 255, 0.12));
+  overflow: hidden;
+}
+
+.statusPillBarFill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusPill,
+  .statusPillBarFill {
+    transition-duration: 0.01ms !important;
+  }
+
+  .statusPillActive {
+    transform: none;
+  }
+}

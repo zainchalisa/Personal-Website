@@ -1,0 +1,446 @@
+.phoneRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Home layer (always mounted behind apps) ── */
+.homeLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  transition:
+    opacity 420ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 420ms cubic-bezier(0.32, 0.72, 0, 1),
+    filter 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.homeLayerObscured {
+  opacity: 0.8;
+  transform: scale(0.95);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.homeLayerObscured .dock {
+  transform: translateX(-50%) translateY(72px);
+  opacity: 0;
+}
+
+.homeLayerRevealing {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+.homeLayerRevealing .dock {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ── Status bar ── */
+.statusBar {
+  position: relative;
+  z-index: 30;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(44px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 24px 0;
+  color: var(--ios-status-text);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.statusBarApp {
+  background: var(--ios-app-bg);
+  color: var(--ios-app-status-text, var(--ios-status-text));
+}
+
+.statusTime {
+  font-variant-numeric: tabular-nums;
+}
+
+.statusRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.statusThemeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: var(--ios-status-btn-bg);
+  color: var(--ios-status-text);
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.statusThemeBtn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Home screen ── */
+.homeScreen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 calc(96px + env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+}
+
+.homeScreenBody {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 12px 0;
+}
+
+/* ── App grid ── */
+.appGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px 12px;
+  width: min(100%, 288px);
+  margin: 0 auto;
+}
+
+.gridItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+}
+
+.gridItem:active {
+  transform: scale(0.92);
+}
+
+.gridLabel {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ios-grid-label);
+  text-align: center;
+  line-height: 1.15;
+  max-width: 76px;
+  text-shadow: var(--ios-grid-label-shadow);
+}
+
+/* ── App icons (grid + dock) ── */
+.appIconSquircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 22%;
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 4px 14px rgba(0, 0, 0, 0.24);
+}
+
+.appIconGrid {
+  width: 60px;
+  height: 60px;
+}
+
+.appIconGrid svg {
+  width: 28px;
+  height: 28px;
+}
+
+.appIconDock {
+  width: 50px;
+  height: 50px;
+}
+
+.appIconDock svg {
+  width: 24px;
+  height: 24px;
+}
+
+.appIconMarkTerminal {
+  width: 28px;
+  height: 20px;
+}
+
+.appIconMarkTerminalDock {
+  width: 24px;
+  height: 17px;
+}
+
+.appIcon_about {
+  background: linear-gradient(145deg, #7a4cb8 0%, #5c2d82 42%, #221333 100%);
+}
+
+.appIcon_projects {
+  background: linear-gradient(145deg, #4a4a4a 0%, #2e2e2e 45%, #1a1a1a 100%);
+}
+
+.appIcon_photography {
+  background: linear-gradient(145deg, #d4894a 0%, #a86530 45%, #5c3820 100%);
+}
+
+.appIcon_github {
+  background: linear-gradient(145deg, #3a3f47 0%, #24292f 55%, #161b22 100%);
+}
+
+.appIcon_linkedin {
+  background: linear-gradient(145deg, #1a86d8 0%, #0a66c2 50%, #084a8a 100%);
+}
+
+.appIcon_mail {
+  background: linear-gradient(145deg, #2a5080 0%, #1a3a5c 50%, #0f2640 100%);
+}
+
+/* ── Dock ── */
+.dock {
+  position: absolute;
+  left: 50%;
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  transform: translateX(-50%) translateY(0);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 18px;
+  border-radius: 28px;
+  background: var(--ios-dock-bg);
+  border: 1px solid var(--ios-dock-border);
+  box-shadow: var(--ios-dock-shadow);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  transition:
+    transform 420ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.dockItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 14px;
+  transition: transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dockItem:active {
+  transform: scale(0.9);
+}
+
+/* ── App shell (zoom from / to icon) ── */
+.appShellOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.appTransitionLayer {
+  position: absolute;
+  inset: 0;
+  transform-origin: var(--tx-origin-x, 50%) var(--tx-origin-y, 50%);
+  border-radius: 0;
+  overflow: hidden;
+  will-change: transform, border-radius, opacity;
+  pointer-events: auto;
+  transition:
+    transform 360ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-radius 360ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.appTransitionOpening {
+  transform: scale(var(--tx-icon-scale, 0.12));
+  border-radius: 12px;
+}
+
+.appTransitionOpen {
+  transform: scale(1);
+  border-radius: 0;
+  opacity: 1;
+}
+
+.appTransitionClosing {
+  transform: scale(var(--tx-icon-scale, 0.12));
+  border-radius: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 420ms;
+}
+
+.appPush {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--ios-app-bg);
+}
+
+.appPushNav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 8px;
+  background: var(--ios-app-bg);
+  border-bottom: 1px solid var(--ios-nav-border);
+}
+
+.statusBarApp + .appPushNav {
+  border-top: none;
+}
+
+.appPushBack {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ios-accent, #0a84ff);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.appPushBack:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.appPushBack svg {
+  width: 28px;
+  height: 28px;
+  margin-left: -2px;
+}
+
+.appPushTitle {
+  flex: 1;
+  margin: 0;
+  padding-right: 44px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: var(--ios-nav-title, var(--ios-status-text));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appPushContent {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.appPushPlaceholder {
+  flex: 1;
+  min-height: 0;
+  background: var(--ios-app-bg);
+}
+
+@keyframes appPushContentIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.appPushContentReveal {
+  animation: appPushContentIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.appPushContentReady {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.appPushContentHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.appShellOverlayParked {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Home indicator ── */
+.homeIndicator {
+  position: absolute;
+  left: 50%;
+  bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--ios-home-indicator);
+  pointer-events: none;
+  transition: opacity 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.homeLayerObscured .homeIndicator {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homeLayer,
+  .appTransitionLayer,
+  .dock,
+  .homeIndicator,
+  .appPushContentReveal {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+}

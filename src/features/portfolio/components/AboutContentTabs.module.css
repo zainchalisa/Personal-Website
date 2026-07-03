@@ -1,0 +1,409 @@
+.aboutTabPanel {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px 18px;
+  background: var(--about-panel-bg);
+  color: var(--about-text);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.gridStage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 0;
+}
+
+.gridColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sectionPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--about-pill-border);
+  background: var(--about-pill-bg);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--about-pill-text);
+}
+
+.sectionPillSubtitle {
+  font-size: 8px;
+  letter-spacing: 0.05em;
+  text-transform: none;
+  color: var(--about-text-subtle);
+  font-style: italic;
+}
+
+.sectionPillSubtitle::before {
+  content: '·';
+  margin-right: 6px;
+  color: var(--about-text-subtle);
+  font-style: normal;
+}
+
+.grid {
+  display: grid;
+  gap: clamp(12px, 2vmin, 24px);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.gridMovies {
+  grid-template-columns: repeat(5, minmax(clamp(108px, 13vmin, 196px), 1fr));
+}
+
+.gridMusic {
+  grid-template-columns: repeat(5, minmax(clamp(108px, 13vmin, 188px), 1fr));
+}
+
+.gridPlaces {
+  grid-template-columns: repeat(5, minmax(clamp(116px, 14vmin, 204px), 1fr));
+}
+
+/* Poster cards */
+.posterCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.posterCardInteractive {
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.posterCardInteractive:focus {
+  outline: none;
+}
+
+.posterCardInteractive:focus-visible .posterFrame {
+  outline: 2px solid var(--about-focus-ring);
+  outline-offset: 2px;
+}
+
+.posterFrame {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--about-card-border);
+  background: var(--about-card-surface);
+  transition:
+    box-shadow 200ms ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.posterCard:hover .posterFrame,
+.posterCard:focus-within .posterFrame {
+  box-shadow: 0 8px 24px var(--about-card-hover-shadow);
+}
+
+.cardArt {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  background: var(--about-card-surface);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center center;
+}
+
+.posterCard:hover .cardArt,
+.posterCard:focus-within .cardArt {
+  transform: scale(1.03);
+}
+
+.cardArtPortrait {
+  aspect-ratio: 2 / 3;
+}
+
+.cardArtSquare {
+  aspect-ratio: 1 / 1;
+}
+
+.cardArtLandscape {
+  aspect-ratio: 4 / 3;
+}
+
+.noteLead {
+  font-style: italic;
+}
+
+.cardNote {
+  margin: 6px 0 0;
+  font-size: clamp(9px, 1.05vmin, 11px);
+  line-height: 1.45;
+  color: inherit;
+  font-style: italic;
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: clamp(6px, 1vmin, 10px);
+  color: var(--about-text-muted);
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  font-size: clamp(11px, 1.25vmin, 14px);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--about-text);
+}
+
+.cardArtist {
+  margin: 2px 0 0;
+  font-size: clamp(10px, 1.1vmin, 12px);
+  color: inherit;
+}
+
+/* Skeleton */
+.skeletonGrid {
+  display: grid;
+  gap: clamp(12px, 2vmin, 24px);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.skeletonGridMovies {
+  grid-template-columns: repeat(5, minmax(clamp(108px, 13vmin, 196px), 1fr));
+}
+
+.skeletonGridMusic {
+  grid-template-columns: repeat(5, minmax(clamp(108px, 13vmin, 188px), 1fr));
+}
+
+.skeletonGridPlaces {
+  grid-template-columns: repeat(5, minmax(clamp(116px, 14vmin, 204px), 1fr));
+}
+
+.skeletonCard {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--about-skeleton-a) 25%,
+    var(--about-skeleton-b) 50%,
+    var(--about-skeleton-a) 75%
+  );
+  background-size: 200% 100%;
+  animation: aboutShimmer 1.2s ease-in-out infinite;
+  border: 1px solid var(--about-card-border);
+}
+
+.skeletonPortrait {
+  aspect-ratio: 2 / 3;
+  width: clamp(108px, 13vmin, 196px);
+}
+
+.skeletonSquare {
+  aspect-ratio: 1 / 1;
+  width: clamp(108px, 13vmin, 188px);
+}
+
+.skeletonPlace {
+  aspect-ratio: 4 / 3;
+  width: clamp(116px, 14vmin, 204px);
+}
+
+@keyframes aboutShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .gridMovies,
+  .gridMusic,
+  .gridPlaces,
+  .skeletonGridMovies,
+  .skeletonGridMusic,
+  .skeletonGridPlaces {
+    grid-template-columns: repeat(3, minmax(clamp(100px, 26vw, 160px), 1fr));
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .gridMovies,
+  .gridMusic,
+  .gridPlaces,
+  .skeletonGridMovies,
+  .skeletonGridMusic,
+  .skeletonGridPlaces {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Fade wrapper */
+.tabFade {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity 100ms ease;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tabFade > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tabFadeVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tabCardEnter .sectionPill {
+  animation: aboutCardEnter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tabCardEnter .grid > * {
+  animation: aboutCardEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tabCardEnter .grid > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.tabCardEnter .grid > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.tabCardEnter .grid > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.tabCardEnter .grid > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.tabCardEnter .grid > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.tabCardEnter .grid > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+.tabCardEnter .grid > *:nth-child(7) {
+  animation-delay: 240ms;
+}
+
+.tabCardEnter .grid > *:nth-child(8) {
+  animation-delay: 280ms;
+}
+
+.tabCardEnter .grid > *:nth-child(9) {
+  animation-delay: 320ms;
+}
+
+.tabCardEnter .grid > *:nth-child(10) {
+  animation-delay: 360ms;
+}
+
+.tabCardEnter .grid > *:nth-child(11) {
+  animation-delay: 400ms;
+}
+
+.tabCardEnter .grid > *:nth-child(12) {
+  animation-delay: 440ms;
+}
+
+.tabCardEnter .grid > *:nth-child(13) {
+  animation-delay: 480ms;
+}
+
+.tabCardEnter .grid > *:nth-child(14) {
+  animation-delay: 520ms;
+}
+
+.tabCardEnter .grid > *:nth-child(15) {
+  animation-delay: 560ms;
+}
+
+@keyframes aboutCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabCardEnter .sectionPill,
+  .tabCardEnter .grid > * {
+    animation: none;
+  }
+}
+
+.tabFadeHost {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 180px;
+  border-bottom: 1px solid var(--about-host-border);
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.tabFadeHostMobile {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabFadeHostMobile .tabFade {
+  position: relative;
+  inset: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tabFadeHostMobile > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabFadeHostMobile .gridStage {
+  align-items: flex-start;
+  justify-content: flex-start;
+}

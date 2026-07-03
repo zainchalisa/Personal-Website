@@ -1,0 +1,182 @@
+.titleBar {
+  --term-titlebar-bg: #161616;
+  --term-titlebar-border: #1e1e1e;
+  --term-titlebar-path: #555555;
+  --term-titlebar-path-active: #8a8a8a;
+  --term-titlebar-user: #555555;
+  --term-close-bg: rgba(255, 255, 255, 0.06);
+  --term-close-border: rgba(255, 255, 255, 0.14);
+  --term-close-fg: rgba(240, 240, 240, 0.82);
+  --term-close-hover-bg: rgba(255, 255, 255, 0.1);
+
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  background: var(--term-titlebar-bg);
+  border-bottom: 1px solid var(--term-titlebar-border);
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease;
+}
+
+:global([data-portfolio-theme='light']) .titleBar {
+  --term-titlebar-bg: #e8e5df;
+  --term-titlebar-border: #d0cec9;
+  --term-titlebar-path: #999999;
+  --term-titlebar-path-active: #666666;
+  --term-titlebar-user: #999999;
+  --term-close-bg: rgba(0, 0, 0, 0.04);
+  --term-close-border: rgba(0, 0, 0, 0.12);
+  --term-close-fg: rgba(40, 40, 40, 0.78);
+  --term-close-hover-bg: rgba(0, 0, 0, 0.07);
+}
+
+.closeBtn {
+  grid-column: 1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--term-close-border);
+  border-radius: 6px;
+  background: var(--term-close-bg);
+  color: var(--term-close-fg);
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    background-color 150ms ease,
+    border-color 300ms ease,
+    color 300ms ease,
+    opacity 120ms ease;
+}
+
+.closeBtn:active:not(:disabled) {
+  background: var(--term-close-hover-bg);
+}
+
+.closeBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.closeBtn:focus-visible {
+  outline: 1px solid var(--term-titlebar-path);
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  display: block;
+  font-family: var(--font-mono, 'JetBrains Mono', ui-monospace, monospace);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  margin-top: -1px;
+}
+
+.pathWrap {
+  grid-column: 2;
+  min-width: 0;
+  text-align: center;
+}
+
+.pathBack {
+  display: inline-flex;
+  max-width: 100%;
+  margin: 0;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 150ms ease;
+}
+
+.pathBack:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+:global([data-portfolio-theme='light']) .pathBack:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.path {
+  display: inline-block;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--term-titlebar-path);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition:
+    opacity 150ms ease,
+    color 300ms ease;
+}
+
+.pathVisible {
+  opacity: 1;
+}
+
+.pathHidden {
+  opacity: 0;
+}
+
+.crumb {
+  opacity: 0.72;
+}
+
+.pathRoot {
+  color: var(--term-titlebar-path-active);
+  transition: color 300ms ease;
+}
+
+.pathCurrent {
+  color: var(--term-titlebar-path);
+  opacity: 0.72;
+}
+
+.pathBack:hover .pathRoot,
+.pathBack:focus-visible .pathRoot {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pathBack:focus-visible {
+  outline: 1px solid var(--term-titlebar-path);
+  outline-offset: 2px;
+}
+
+.user {
+  grid-column: 3;
+  justify-self: end;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--term-titlebar-user);
+  white-space: nowrap;
+  transition: color 300ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titleBar,
+  .path,
+  .user,
+  .closeBtn {
+    transition-duration: 0.01ms !important;
+  }
+}

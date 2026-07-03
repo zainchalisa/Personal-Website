@@ -1,0 +1,1035 @@
+.desktop {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  font-family: -apple-system, 'Inter', system-ui, sans-serif;
+  user-select: none;
+}
+
+.desktop button:focus,
+.desktop button:focus-visible {
+  outline: none;
+}
+
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  background: var(--pt-wallpaper);
+}
+
+.wallpaper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.menuBar {
+  position: relative;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  padding: 0 16px;
+  background: var(--pt-menubar-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--pt-menubar-border);
+  color: var(--pt-menubar-text);
+  font-size: 13px;
+}
+
+.menuBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.menuPear {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.menuBrand,
+.menuTime {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--pt-menubar-text);
+  white-space: nowrap;
+}
+
+.menuTime {
+  font-variant-numeric: tabular-nums;
+}
+
+.menuItem {
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.menuItemBold {
+  font-weight: 600;
+}
+
+.menuBarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--pt-menubar-icon);
+  flex-shrink: 0;
+}
+
+.menuConnect {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.menuSocialLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 4px;
+  color: var(--pt-menubar-icon);
+  opacity: 0.92;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+}
+
+.menuSocialLink:hover {
+  background: var(--pt-theme-btn-hover);
+  opacity: 1;
+}
+
+.menuSocialLink svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.menuSocialLabel {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.menuDivider {
+  width: 1px;
+  height: 14px;
+  background: var(--pt-menubar-divider);
+  flex-shrink: 0;
+}
+
+.menuSystem {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 10px;
+  color: var(--pt-menubar-icon);
+}
+
+.themeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 18px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--pt-menubar-icon);
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.85;
+  outline: none;
+  transition: background 0.12s, opacity 0.12s;
+}
+
+.themeBtn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.themeBtn:hover {
+  background: var(--pt-theme-btn-hover);
+  opacity: 1;
+}
+
+.menuBarRight svg {
+  width: 14px;
+  height: 14px;
+}
+
+.desktopSurface {
+  position: relative;
+  z-index: 1;
+  height: calc(100% - 28px);
+  min-height: 0;
+}
+
+.desktopWidgets {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.desktopItems {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 10;
+}
+
+.desktopItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 96px;
+  padding: 6px 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: default;
+  transition: background 0.12s;
+  outline: none;
+}
+
+.desktopItem:hover {
+  background: var(--pt-folder-hover);
+}
+
+.desktopItemSelected {
+  background: var(--pt-folder-selected-bg);
+}
+
+.folderIcon {
+  width: 56px;
+  height: 46px;
+  position: relative;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.folderIconSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.appIcon {
+  width: 64px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.appIconInner {
+  width: 56px;
+  height: 56px;
+  border-radius: 22%;
+  background: linear-gradient(160deg, #5c2d82 0%, #3d1f5c 45%, #221333 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.appIconInnerProjects {
+  background: linear-gradient(160deg, #4a4a4a 0%, #2e2e2e 45%, #1a1a1a 100%);
+}
+
+.appIconMark {
+  width: 36px;
+  height: 31px;
+  flex-shrink: 0;
+  opacity: 0.92;
+}
+
+.appIconMarkTerminal {
+  width: 34px;
+  height: 24px;
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+.desktopItemLabel {
+  font-size: 11px;
+  color: var(--pt-folder-label);
+  text-align: center;
+  text-shadow: var(--pt-folder-label-shadow);
+  line-height: 1.2;
+  max-width: 80px;
+  word-break: break-word;
+}
+
+.windowsLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.window {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--pt-window-border);
+  box-shadow: var(--pt-window-shadow);
+  background-color: var(--pt-window-bg);
+  isolation: isolate;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+@keyframes windowOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes windowOpenFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.windowOpening {
+  opacity: 0;
+  transform-origin: center center;
+  animation: windowOpen 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--window-open-delay, 0ms);
+}
+
+.windowOpening.windowMaximized {
+  animation-name: windowOpenFade;
+  animation-duration: 480ms;
+  animation-timing-function: ease-out;
+}
+
+.windowContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--pt-window-bg);
+  position: relative;
+  z-index: 1;
+}
+
+.windowFocused {
+  border-color: var(--pt-window-border-focus);
+  box-shadow: var(--pt-window-shadow-focus);
+}
+
+.windowDragging {
+  transition: none;
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+.windowDragging * {
+  cursor: grabbing !important;
+}
+
+.windowMaximized {
+  border-radius: 0;
+  border-color: transparent;
+  box-shadow: none;
+  transition: none;
+}
+
+.windowResizing {
+  transition: none;
+  user-select: none;
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+.resizeHandle {
+  position: absolute;
+  z-index: 40;
+  touch-action: none;
+}
+
+.resizeN {
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.resizeS {
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.resizeE {
+  top: 10px;
+  right: 0;
+  bottom: 10px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.resizeW {
+  top: 10px;
+  left: 0;
+  bottom: 10px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.resizeNe {
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+.resizeNw {
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+.resizeSe {
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+}
+
+.resizeSw {
+  left: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nesw-resize;
+}
+
+/* Video editor window — mins match windowConstraints.ts */
+.editorWindow {
+  width: min(960px, calc(100% - 48px));
+  height: min(640px, calc(100% - 80px));
+  min-width: 600px;
+  min-height: 420px;
+}
+
+/* Terminal projects window */
+.projectsWindow {
+  width: min(980px, calc(100% - 48px));
+  height: min(680px, calc(100% - 80px));
+  min-width: 920px;
+  min-height: 620px;
+  left: 6%;
+  top: 10%;
+}
+
+.projectsApp {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--term-bg, #0c0c0c);
+}
+
+.projectsTitleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  background: var(--pt-chrome-bg);
+  border-bottom: 1px solid var(--pt-chrome-border);
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.projectsTitleBar:active {
+  cursor: grabbing;
+}
+
+.projectsTitle {
+  flex: 1;
+  text-align: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--pt-chrome-muted);
+  letter-spacing: 0.07em;
+  margin-right: 52px;
+}
+
+.projectsBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.aboutApp {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: #0f0f10;
+}
+
+.aboutTitleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  background: var(--pt-chrome-bg);
+  border-bottom: 1px solid var(--pt-chrome-border);
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.aboutTitleBar:active {
+  cursor: grabbing;
+}
+
+.aboutTitle {
+  flex: 1;
+  text-align: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pt-chrome-muted);
+  letter-spacing: 0.04em;
+  margin-right: 52px;
+}
+
+.aboutBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Finder-style folder windows — mins match windowConstraints.ts */
+.finderWindow {
+  width: min(520px, calc(100% - 48px));
+  height: min(380px, calc(100% - 120px));
+  min-width: 500px;
+  min-height: 340px;
+  left: 8%;
+  top: 12%;
+}
+
+/* Photography pinboard window — mins match windowConstraints.ts */
+.photographyWindow {
+  width: min(960px, calc(100% - 48px));
+  height: min(680px, calc(100% - 80px));
+  min-width: 640px;
+  min-height: 480px;
+  left: 10%;
+  top: 8%;
+}
+
+.photographyApp {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--pt-window-bg);
+}
+
+.photographyTitleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  background: var(--pt-chrome-bg);
+  border-bottom: 1px solid var(--pt-chrome-border);
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.photographyTitleBar:active {
+  cursor: grabbing;
+}
+
+.photographyTitle {
+  flex: 1;
+  text-align: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--pt-chrome-muted);
+  letter-spacing: 0.07em;
+  margin-right: 52px;
+}
+
+.photographyBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.photographyBody .photography-page {
+  height: 100%;
+  flex: none;
+}
+
+.photographyBody .photography-stage {
+  animation-duration: 0.45s;
+}
+
+.finderChromeless {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  padding: 16px;
+  background: var(--pt-app-bg);
+  color: var(--pt-app-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+}
+
+.desktop[data-layout='ios'] .desktopSurface {
+  height: 100%;
+}
+
+.desktop[data-layout='ios'] .menuBar {
+  display: none;
+}
+
+.finderChrome {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  background-color: var(--pt-app-bg);
+  color: var(--pt-app-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.finderTitleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  background: var(--pt-chrome-bg);
+  border-bottom: 1px solid var(--pt-chrome-border);
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.finderTitleBar:active {
+  cursor: grabbing;
+}
+
+.finderTraffic {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.trafficBtn {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: filter 0.1s;
+}
+
+.trafficBtn:hover {
+  filter: brightness(0.9);
+}
+
+.trafficClose {
+  background: #ff5f57;
+}
+
+.trafficMin {
+  background: #ffbd2e;
+}
+
+.trafficMax {
+  background: #28ca41;
+}
+
+.finderTitle {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pt-chrome-muted);
+  letter-spacing: -0.01em;
+  margin-right: 52px;
+}
+
+.finderToolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 30px;
+  background: var(--pt-toolbar-bg);
+  border-bottom: 1px solid var(--pt-chrome-border);
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.finderToolbar:active {
+  cursor: grabbing;
+}
+
+.finderNavBtn {
+  width: 26px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--pt-text-dim);
+  background: transparent;
+  border: none;
+}
+
+.finderNavBtn:hover {
+  color: var(--pt-text-hover);
+  background: var(--pt-surface-input);
+}
+
+.finderNavBtn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.finderPath {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--pt-text-tertiary);
+  padding: 3px 10px;
+  background: var(--pt-surface-input);
+  border-radius: 3px;
+  border: 1px solid var(--pt-border-subtle);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.finderBody {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 160px;
+  min-width: 0;
+  overflow: hidden;
+  background-color: var(--pt-surface);
+}
+
+.finderSidebar {
+  width: 140px;
+  min-width: 140px;
+  flex-shrink: 0;
+  padding: 10px 8px;
+  background: var(--pt-chrome-bg);
+  border-right: 1px solid var(--pt-chrome-border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.finderSidebarLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pt-text-faint);
+  padding: 4px 8px 6px;
+  letter-spacing: -0.01em;
+}
+
+.finderSidebarItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--pt-text-secondary);
+}
+
+.finderSidebarItem:hover {
+  background: var(--pt-surface-raised);
+  color: var(--pt-text-hover);
+}
+
+.finderSidebarItemActive {
+  background: var(--pt-surface-hover);
+  color: var(--pt-text-active);
+}
+
+.finderSidebarItem svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.55;
+}
+
+.finderSidebarItemActive svg {
+  opacity: 0.8;
+  color: var(--pt-accent);
+}
+
+.finderContent {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  background: var(--pt-surface);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pt-scroll-thumb) transparent;
+}
+
+.finderContent::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.finderContent::-webkit-scrollbar-track {
+  background: var(--pt-scroll-track);
+}
+
+.finderContent::-webkit-scrollbar-thumb {
+  background: var(--pt-scroll-thumb);
+  border-radius: 3px;
+}
+
+.finderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 12px 8px;
+}
+
+.finderFile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border-radius: 6px;
+}
+
+.finderFile:hover {
+  background: var(--pt-accent-soft);
+}
+
+.finderFileIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 22px;
+}
+
+.finderFileIconApp {
+  background: var(--pt-finder-icon-app-bg);
+  border: 1px solid var(--pt-finder-icon-app-border);
+  box-shadow: none;
+}
+
+.finderFileIconPhoto {
+  background: var(--pt-finder-icon-photo-bg);
+  border: 1px solid var(--pt-finder-icon-photo-border);
+  color: var(--pt-finder-icon-photo-color);
+}
+
+.finderFileIconPhoto svg {
+  width: 22px;
+  height: 22px;
+}
+
+.finderFileName {
+  font-size: 11px;
+  font-weight: 400;
+  text-align: center;
+  color: var(--pt-finder-file-name);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+
+.finderEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+  color: var(--pt-text-faint);
+  font-size: 12px;
+}
+
+.finderEmpty svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.25;
+}
+
+@media (max-width: 640px) {
+  .menuBrand {
+    font-size: 12px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .menuSocialLabel {
+    display: none;
+  }
+
+  .menuSocialLink {
+    padding: 0 6px;
+  }
+
+  .desktopItems {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    flex-direction: row;
+    gap: 0;
+  }
+
+  .desktopItem {
+    width: 72px;
+  }
+
+  .folderIcon {
+    width: 44px;
+    height: 36px;
+  }
+
+  .appIcon {
+    width: 50px;
+    height: 44px;
+  }
+
+  .appIconInner {
+    width: 44px;
+    height: 44px;
+  }
+
+  .appIconMark {
+    width: 28px;
+    height: 24px;
+  }
+
+  .editorWindow {
+    width: calc(100% - 16px);
+    height: calc(100% - 56px);
+    min-width: min(600px, calc(100% - 16px));
+    min-height: min(420px, calc(100% - 56px));
+  }
+
+  .finderWindow {
+    width: calc(100% - 24px);
+    min-width: min(500px, calc(100% - 24px));
+    min-height: min(340px, calc(100% - 56px));
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .projectsWindow {
+    width: calc(100% - 16px);
+    height: calc(100% - 56px);
+    min-width: min(920px, calc(100% - 16px));
+    min-height: min(620px, calc(100% - 56px));
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .photographyWindow {
+    width: calc(100% - 16px);
+    height: calc(100% - 56px);
+    min-width: min(640px, calc(100% - 16px));
+    min-height: min(480px, calc(100% - 56px));
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .windowOpening {
+    animation-name: windowOpenFade;
+    animation-duration: 480ms;
+    animation-timing-function: ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .windowOpening {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
