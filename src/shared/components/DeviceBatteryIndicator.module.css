@@ -1,0 +1,66 @@
+.battery {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+.batteryBody {
+  position: relative;
+  width: 22px;
+  height: 11px;
+  padding: 1.5px;
+  border: 1.2px solid currentColor;
+  border-radius: 3px;
+  box-sizing: border-box;
+  opacity: 0.92;
+}
+
+.batteryLevel {
+  height: 100%;
+  border-radius: 1px;
+  background: currentColor;
+  transition: width 0.35s ease;
+}
+
+.batteryLevelUnknown {
+  width: 40%;
+  opacity: 0.35;
+}
+
+.batteryBolt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  filter: drop-shadow(0 0 0.4px rgba(0, 0, 0, 0.45));
+}
+
+.batteryCap {
+  width: 1.5px;
+  height: 4px;
+  border-radius: 0 1px 1px 0;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.batteryCharging {
+  color: #34c759;
+}
+
+.batteryCharging .batteryCap {
+  opacity: 0.85;
+}
+
+.batteryLow {
+  color: #ff3b30;
+}
+
+.batteryLowPower:not(.batteryCharging):not(.batteryLow) {
+  color: #ffd60a;
+}
