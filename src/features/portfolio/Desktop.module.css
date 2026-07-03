@@ -3,6 +3,9 @@
   width: 100%;
   height: 100%;
   min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   font-family: -apple-system, 'Inter', system-ui, sans-serif;
   user-select: none;
@@ -647,28 +650,30 @@
   position: fixed;
   inset: 0;
   width: 100%;
+  height: auto;
   min-height: 100%;
   min-height: 100dvh;
+  min-height: 100svh;
   min-height: 100lvh;
   min-height: -webkit-fill-available;
+  display: flex;
+  flex-direction: column;
 }
 
 .desktop[data-layout='ios'] .wallpaper {
   position: fixed;
   inset: 0;
-  width: 100%;
-  min-height: 100%;
-  min-height: 100dvh;
-  min-height: 100lvh;
-  min-height: -webkit-fill-available;
+  width: auto;
+  height: auto;
 }
 
 .desktop[data-layout='ios'] .desktopSurface {
   position: relative;
   z-index: 1;
-  height: 100%;
+  flex: 1;
   min-height: 100%;
   min-height: 100dvh;
+  min-height: 100svh;
   min-height: 100lvh;
   min-height: -webkit-fill-available;
 }

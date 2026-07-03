@@ -98,6 +98,13 @@ export function PortfolioPage() {
   })
   const { theme, setTheme } = usePortfolioTheme()
 
+  useEffect(() => {
+    document.documentElement.dataset.layout = isPhone ? 'ios' : 'mac'
+    return () => {
+      delete document.documentElement.dataset.layout
+    }
+  }, [isPhone])
+
   const {
     draggingId,
     resizingId,
