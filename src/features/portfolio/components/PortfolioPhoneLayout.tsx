@@ -347,7 +347,6 @@ export function PortfolioPhoneLayout({
           <IosStatusBar theme={theme} onThemeChange={onThemeChange} />
           <IosHomeScreen onOpenApp={handleOpenApp} registerIcon={registerIcon} />
           <IosDock onOpenApp={handleOpenApp} registerIcon={registerIcon} />
-          <div className={iosStyles.homeIndicator} aria-hidden />
         </div>
 
         {hostApp ? (

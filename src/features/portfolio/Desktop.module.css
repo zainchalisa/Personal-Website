@@ -643,8 +643,29 @@
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
 }
 
-.desktop[data-layout='ios'] .desktopSurface {
+.desktop[data-layout='ios'] {
+  position: fixed;
+  inset: 0;
+  width: 100%;
   height: 100%;
+  min-height: 100dvh;
+  max-height: 100dvh;
+}
+
+.desktop[data-layout='ios'] .wallpaper {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+}
+
+.desktop[data-layout='ios'] .desktopSurface {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  min-height: 100dvh;
+  max-height: 100dvh;
 }
 
 .desktop[data-layout='ios'] .menuBar {

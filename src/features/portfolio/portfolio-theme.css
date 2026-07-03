@@ -338,3 +338,14 @@ html[data-theme='light'] {
     }
   }
 }
+
+/* Match wallpaper edge tones behind Safari chrome on mobile */
+@media (max-width: 640px) {
+  html[data-theme='dark'] {
+    --pt-root-bg: #1a3a5c;
+  }
+
+  html[data-theme='light'] {
+    --pt-root-bg: #c7d4f0;
+  }
+}
