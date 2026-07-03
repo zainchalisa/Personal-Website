@@ -1,11 +1,23 @@
 {
-  "functions": {
-    "api/tripdog/unlock.ts": {
-      "includeFiles": "api/_lib/**"
+  "redirects": [
+    {
+      "source": "/linkedin",
+      "destination": "https://www.linkedin.com/in/zainchalisa",
+      "permanent": false
+    },
+    {
+      "source": "/github",
+      "destination": "https://github.com/zainchalisa",
+      "permanent": false
+    },
+    {
+      "source": "/email",
+      "destination": "mailto:zainchalisabiz@gmail.com",
+      "permanent": false
     }
-  },
+  ],
   "rewrites": [
-    { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -27,10 +39,6 @@
           "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data:; connect-src 'self' https:; media-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ]
 }

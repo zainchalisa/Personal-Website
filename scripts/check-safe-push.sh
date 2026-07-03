@@ -21,9 +21,7 @@ ok() {
 is_blocked_path() {
   case "$1" in
     .env.example) return 1 ;;
-    tripdog.project.example.json) return 1 ;;
     .env) return 0 ;;
-    tripdog.project.json) return 0 ;;
     ASSET_HOSTING.md) return 0 ;;
     .dev.vars) return 0 ;;
     dist/*) return 0 ;;
@@ -33,12 +31,6 @@ is_blocked_path() {
   esac
   case "$1" in
     .env.*) return 0 ;;
-    src/pages/projects/assets/environment/bg_volcano_*.png)
-      case "$1" in
-        */bg_volcano.png) return 1 ;;
-        *) return 0 ;;
-      esac
-      ;;
   esac
   return 1
 }
@@ -81,17 +73,9 @@ if git ls-files --error-unmatch .env >/dev/null 2>&1; then
   fail ".env is tracked by git — run: git rm --cached .env"
 fi
 
-if git ls-files --error-unmatch tripdog.project.json >/dev/null 2>&1; then
-  fail "tripdog.project.json is tracked — run: git rm --cached tripdog.project.json"
-fi
-
 if git ls-files --error-unmatch ASSET_HOSTING.md >/dev/null 2>&1; then
   fail "ASSET_HOSTING.md is tracked — run: git rm --cached ASSET_HOSTING.md"
 fi
 
-if [[ -f .env ]] && grep -qE '^VITE_.*TRIPDOG|^VITE_TRIPDOG' .env 2>/dev/null; then
-  fail ".env uses VITE_ for Trip Dog — use TRIPDOG_PASSWORD / TRIPDOG_PROJECT_JSON without VITE_"
-fi
-
 ok "No secrets or local-only paths tracked or staged"
-ok ".env and tripdog.project.json are not in the index"
+ok ".env is not in the index"

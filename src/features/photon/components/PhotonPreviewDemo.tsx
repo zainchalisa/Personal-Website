@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
-import { assetUrl } from '../../../lib/assetUrl'
+import { useMediaQuery } from '@/shared/hooks/useMediaQuery'
+import { assetUrl } from '@/shared/lib/assetUrl'
 import styles from '../PhotonPage.module.css'
+
+const COMPACT_LAYOUT_QUERY = '(max-width: 520px)'
+const COMPACT_MAX_THUMBS = 3
+const DESKTOP_MAX_THUMBS = 6
 
 function photonAsset(relativePath: string): string {
   return assetUrl(`/photon/${relativePath}`)
@@ -146,6 +151,8 @@ function preloadImages(urls: readonly string[]): Promise<void> {
 }
 
 export default function PhotonPreviewDemo() {
+  const isCompact = useMediaQuery(COMPACT_LAYOUT_QUERY)
+  const maxThumbs = isCompact ? COMPACT_MAX_THUMBS : DESKTOP_MAX_THUMBS
   const [typed, setTyped] = useState('')
   const [resultCount, setResultCount] = useState(0)
   const [showResults, setShowResults] = useState(false)
@@ -331,9 +338,11 @@ export default function PhotonPreviewDemo() {
         <div
           className={`${styles.gridWrap} ${showResults ? styles.gridWrapVisible : ''} ${fading ? styles.gridWrapFading : ''}`}
         >
-          <div className={styles.grid}>
-            {Array.from({ length: 6 }, (_, i) => {
-              const visible = showResults && i < resultCount
+          <div
+            className={`${styles.grid} ${isCompact ? styles.gridCompact : ''}`}
+          >
+            {Array.from({ length: maxThumbs }, (_, i) => {
+              const visible = showResults && i < Math.min(resultCount, maxThumbs)
               const demo = SEARCH_DEMOS[activeDemoIndex]
               const photoSrc = visible ? demo.images?.[i] : undefined
               const key = visible ? `r${resultsGeneration}-${i}` : `slot-${i}`

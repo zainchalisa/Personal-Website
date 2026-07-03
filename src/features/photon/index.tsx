@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { assetUrl } from '../../lib/assetUrl'
+import { assetUrl } from '@/shared/lib/assetUrl'
 
 import PhotonPreviewDemo from './components/PhotonPreviewDemo'
 import styles from './PhotonPage.module.css'
@@ -58,9 +58,9 @@ export default function PhotonPage() {
 
         <h1 className={styles.headline}>
           <span className={styles.headlineLine}>
-            your <span className={styles.headlineAccent}>memories,</span>
+            Your <span className={styles.headlineAccent}>memories,</span>
           </span>
-          <span className={styles.headlineLine}>instantly searchable.</span>
+          <span className={styles.headlineLine}>Instantly searchable.</span>
         </h1>
         <p className={styles.lead}>
         A moment. A face. A place. 
@@ -105,7 +105,7 @@ export default function PhotonPage() {
 
       <div className={`${styles.inner} ${styles.innerFooter}`}>
         <footer className={styles.footer}>
-          <a href="https://zainchalisa.com">zainchalisa.com</a>
+          <a href="https://zainchalisa.com">Zain Chalisa</a>
         </footer>
       </div>
     </div>

@@ -8,20 +8,19 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "knip": "knip",
+    "generate:photography-manifest": "node scripts/generate-photography-manifest.mjs",
     "check:push": "bash scripts/check-safe-push.sh",
     "prepush": "npm run check:push && npm run build",
-    "test:rate-limit": "bash scripts/test-tripdog-rate-limit.sh",
     "preview": "vite preview"
   },
   "dependencies": {
     "@fontsource/geist-mono": "^5.2.7",
     "@fontsource/geist-sans": "^5.2.5",
-    "@fontsource/press-start-2p": "^5.2.7",
+    "@tabler/icons-react": "^3.44.0",
     "@tailwindcss/vite": "^4.3.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tailwindcss": "^4.3.0",
-    "@vercel/node": "^5.8.4"
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

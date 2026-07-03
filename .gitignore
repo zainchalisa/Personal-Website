@@ -27,7 +27,6 @@ coverage/
 .env
 .env.*
 !.env.example
-tripdog.project.json
 *.local
 
 # Cloudflare / Wrangler
@@ -36,11 +35,6 @@ tripdog.project.json
 
 # Local ops notes (env, deploy, asset URLs) — not for the public repo
 ASSET_HOSTING.md
-
-# Projects page — large portfolio binaries only (game sprites stay tracked for Vite)
-src/pages/projects/assets/**/*.pdf
-src/pages/projects/assets/**/originals/**
-src/pages/projects/assets/environment/bg_volcano_[0-9].png
 
 # Credentials (never commit)
 *.pem
