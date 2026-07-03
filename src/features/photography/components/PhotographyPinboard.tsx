@@ -131,6 +131,7 @@ const RUBBER_BAND_SNAP_MS = 220
 const SS_SWIPE_NAV_PX = 48
 const SS_SWIPE_DISMISS_PX = 72
 const SS_SWIPE_AXIS_RATIO = 1.25
+const MIN_PINCH_START_DIST = 10
 const MIN_ZOOM_SCALE = 0.4
 const MAX_ZOOM_SCALE_DESKTOP = 1.75
 const MAX_ZOOM_SCALE_MOBILE = 1.6
@@ -921,13 +922,16 @@ export default function PhotographyPinboard({
     [getCamBounds, isMobile],
   )
 
-  const beginPinch = useCallback(() => {
+  const beginPinch = useCallback((): boolean => {
     const frame = frameRef.current
-    if (!frame) return
+    if (!frame) return false
     const pts = [...pointersRef.current.values()]
-    if (pts.length < 2) return
+    if (pts.length < 2) return false
 
     const [a, b] = [pts[0], pts[1]]
+    const startDist = pointerDistance(a, b)
+    if (startDist < MIN_PINCH_START_DIST) return false
+
     const mid = pointerMidpoint(a, b)
     const rect = frame.getBoundingClientRect()
     const cam = camRef.current
@@ -935,7 +939,7 @@ export default function PhotographyPinboard({
 
     pinchRef.current = {
       active: true,
-      startDist: pointerDistance(a, b),
+      startDist,
       startScale: zoom.tScale,
       startCamX: cam.tX,
       startCamY: cam.tY,
@@ -945,34 +949,25 @@ export default function PhotographyPinboard({
     flyRef.current = null
     inertiaRef.current.active = false
     dragRef.current.active = false
+    return true
   }, [])
 
-  const updatePinch = useCallback(() => {
-    const pinch = pinchRef.current
-    if (!pinch.active) return
-    const pts = [...pointersRef.current.values()]
-    if (pts.length < 2) return
-
-    const [a, b] = [pts[0], pts[1]]
-    const dist = pointerDistance(a, b)
-    if (pinch.startDist < 1) return
-
-    const newScale = clamp(
-      pinch.startScale * (dist / pinch.startDist),
-      MIN_ZOOM_SCALE,
-      maxZoomScale(isMobile),
-    )
-    const { maxX, maxY } = getCamBounds(newScale)
-    const wx = pinch.startCamX + pinch.focalSx / pinch.startScale
-    const wy = pinch.startCamY + pinch.focalSy / pinch.startScale
-
-    camRef.current.tX = clamp(wx - pinch.focalSx / newScale, 0, maxX)
-    camRef.current.tY = clamp(wy - pinch.focalSy / newScale, 0, maxY)
-    zoomRef.current.tScale = newScale
-    if (Math.abs(newScale - pinch.startScale) > 0.01) {
-      dragRef.current.didDrag = true
+  const startSinglePointerDrag = useCallback((clientX: number, clientY: number) => {
+    interactingRef.current = true
+    flyRef.current = null
+    rubberBandSnapRef.current = null
+    inertiaRef.current.active = false
+    velocitySampleBufferRef.current = []
+    lastPointerRef.current = { x: clientX, y: clientY, t: performance.now() }
+    dragRef.current = {
+      active: true,
+      didDrag: false,
+      sx: clientX,
+      sy: clientY,
+      cx: camRef.current.tX,
+      cy: camRef.current.tY,
     }
-  }, [getCamBounds, isMobile])
+  }, [])
 
   const startRubberBandSnap = useCallback(() => {
     const cam = camRef.current
@@ -990,82 +985,31 @@ export default function PhotographyPinboard({
     }
   }, [getCamBounds])
 
-  useEffect(() => {
-    slideshowRef.current = slideshow
-    if (!slideshow) return
-    dragRef.current.active = false
-    dragRef.current.didDrag = false
-    interactingRef.current = false
-    inertiaRef.current.active = false
-    rubberBandSnapRef.current = null
-    pinchRef.current.active = false
-    pointersRef.current.clear()
-    ssSwipeRef.current.active = false
-  }, [slideshow])
-
-  const onPointerDown = useCallback(
+  const handleFramePointerDown = useCallback(
     (e: ReactPointerEvent) => {
       if (slideshowRef.current) return
       if (e.button !== 0) return
+
       pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
       frameRef.current?.setPointerCapture(e.pointerId)
 
       if (pointersRef.current.size === 1) {
-        interactingRef.current = true
-        flyRef.current = null
-        rubberBandSnapRef.current = null
-        inertiaRef.current.active = false
-        velocitySampleBufferRef.current = []
-        lastPointerRef.current = { x: e.clientX, y: e.clientY, t: performance.now() }
-        dragRef.current = {
-          active: true,
-          didDrag: false,
-          sx: e.clientX,
-          sy: e.clientY,
-          cx: camRef.current.tX,
-          cy: camRef.current.tY,
-        }
+        startSinglePointerDrag(e.clientX, e.clientY)
       } else if (pointersRef.current.size === 2) {
-        beginPinch()
+        if (!beginPinch()) {
+          const staleId = [...pointersRef.current.keys()][0]
+          pointersRef.current.delete(staleId)
+          pinchRef.current.active = false
+          startSinglePointerDrag(e.clientX, e.clientY)
+        }
+      } else {
+        pointersRef.current.delete(e.pointerId)
       }
     },
-    [beginPinch],
+    [beginPinch, startSinglePointerDrag],
   )
 
-  const onPointerMove = useCallback(
-    (e: ReactPointerEvent) => {
-      if (slideshowRef.current) return
-      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
-      updateMouse(e.clientX, e.clientY)
-
-      if (pointersRef.current.size >= 2 && pinchRef.current.active) {
-        updatePinch()
-        return
-      }
-
-      const d = dragRef.current
-      if (!d.active) return
-      const dx = e.clientX - d.sx
-      const dy = e.clientY - d.sy
-      if (Math.abs(dx) + Math.abs(dy) > 4) d.didDrag = true
-      const now = performance.now()
-      const dt = now - lastPointerRef.current.t
-      const moveDx = e.clientX - lastPointerRef.current.x
-      const moveDy = e.clientY - lastPointerRef.current.y
-      if (dt > 0 && dt < VELOCITY_SAMPLE_MAX_DT) {
-        const buf = velocitySampleBufferRef.current
-        buf.push({ dx: moveDx, dy: moveDy, dt })
-        if (buf.length > VELOCITY_SAMPLE_MAX) buf.shift()
-      }
-      lastPointerRef.current = { x: e.clientX, y: e.clientY, t: now }
-      const { scale, maxX, maxY } = getCamBounds()
-      camRef.current.tX = applyPanRubberBand(d.cx - dx / scale, maxX)
-      camRef.current.tY = applyPanRubberBand(d.cy - dy / scale, maxY)
-    },
-    [updateMouse, getCamBounds, updatePinch],
-  )
-
-  const onPointerUp = useCallback(
+  const handleFramePointerUp = useCallback(
     (e: ReactPointerEvent) => {
       if (slideshowRef.current) {
         pointersRef.current.delete(e.pointerId)
@@ -1147,6 +1091,95 @@ export default function PhotographyPinboard({
     [isMobile, getCamBounds, startRubberBandSnap, updateNearestMobileRegion],
   )
 
+  const updatePinch = useCallback(() => {
+    const pinch = pinchRef.current
+    if (!pinch.active) return
+    const pts = [...pointersRef.current.values()]
+    if (pts.length < 2) return
+
+    const [a, b] = [pts[0], pts[1]]
+    const dist = pointerDistance(a, b)
+    if (pinch.startDist < 1) return
+
+    const newScale = clamp(
+      pinch.startScale * (dist / pinch.startDist),
+      MIN_ZOOM_SCALE,
+      maxZoomScale(isMobile),
+    )
+    const { maxX, maxY } = getCamBounds(newScale)
+    const wx = pinch.startCamX + pinch.focalSx / pinch.startScale
+    const wy = pinch.startCamY + pinch.focalSy / pinch.startScale
+
+    camRef.current.tX = clamp(wx - pinch.focalSx / newScale, 0, maxX)
+    camRef.current.tY = clamp(wy - pinch.focalSy / newScale, 0, maxY)
+    zoomRef.current.tScale = newScale
+    if (Math.abs(newScale - pinch.startScale) > 0.01) {
+      dragRef.current.didDrag = true
+    }
+  }, [getCamBounds, isMobile])
+
+  useEffect(() => {
+    slideshowRef.current = slideshow
+    if (!slideshow) return
+    dragRef.current.active = false
+    dragRef.current.didDrag = false
+    interactingRef.current = false
+    inertiaRef.current.active = false
+    rubberBandSnapRef.current = null
+    pinchRef.current.active = false
+    pointersRef.current.clear()
+    ssSwipeRef.current.active = false
+  }, [slideshow])
+
+  const onPointerDown = useCallback(
+    (e: ReactPointerEvent) => {
+      handleFramePointerDown(e)
+    },
+    [handleFramePointerDown],
+  )
+
+  const onPointerMove = useCallback(
+    (e: ReactPointerEvent) => {
+      if (slideshowRef.current) return
+      if (!pointersRef.current.has(e.pointerId)) return
+
+      pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+      updateMouse(e.clientX, e.clientY)
+
+      if (pointersRef.current.size >= 2 && pinchRef.current.active) {
+        updatePinch()
+        return
+      }
+
+      const d = dragRef.current
+      if (!d.active) return
+      const dx = e.clientX - d.sx
+      const dy = e.clientY - d.sy
+      if (Math.abs(dx) + Math.abs(dy) > 4) d.didDrag = true
+      const now = performance.now()
+      const dt = now - lastPointerRef.current.t
+      const moveDx = e.clientX - lastPointerRef.current.x
+      const moveDy = e.clientY - lastPointerRef.current.y
+      if (dt > 0 && dt < VELOCITY_SAMPLE_MAX_DT) {
+        const buf = velocitySampleBufferRef.current
+        buf.push({ dx: moveDx, dy: moveDy, dt })
+        if (buf.length > VELOCITY_SAMPLE_MAX) buf.shift()
+      }
+      lastPointerRef.current = { x: e.clientX, y: e.clientY, t: now }
+      const { scale, maxX, maxY } = getCamBounds()
+      camRef.current.tX = applyPanRubberBand(d.cx - dx / scale, maxX)
+      camRef.current.tY = applyPanRubberBand(d.cy - dy / scale, maxY)
+    },
+    [updateMouse, getCamBounds, updatePinch],
+  )
+
+  const onPointerUp = useCallback(
+    (e: ReactPointerEvent) => {
+      handleFramePointerUp(e)
+    },
+    [handleFramePointerUp],
+  )
+
   const focusMobileRegion = useCallback(
     (id: BoardRegionId | null) => {
       setActiveRegionId(id)
@@ -1164,7 +1197,8 @@ export default function PhotographyPinboard({
     interactingRef.current = true
   }, [])
 
-  const onPointerLeave = useCallback(() => {
+  const onPointerLeave = useCallback((e: ReactPointerEvent) => {
+    if (e.pointerType === 'touch') return
     interactingRef.current = false
     dragRef.current.active = false
   }, [])
@@ -1179,11 +1213,27 @@ export default function PhotographyPinboard({
     [preloadOpts],
   )
 
-  const onCardPointerDown = useCallback((e: ReactPointerEvent) => {
-    e.stopPropagation()
-    dragRef.current.active = false
-    dragRef.current.didDrag = false
-  }, [])
+  const onCardPointerDown = useCallback(
+    (e: ReactPointerEvent) => {
+      if (isMobile) {
+        handleFramePointerDown(e)
+        e.stopPropagation()
+        return
+      }
+      e.stopPropagation()
+      dragRef.current.active = false
+      dragRef.current.didDrag = false
+    },
+    [isMobile, handleFramePointerDown],
+  )
+
+  const onCardPointerUp = useCallback(
+    (e: ReactPointerEvent) => {
+      if (isMobile) handleFramePointerUp(e)
+      e.stopPropagation()
+    },
+    [isMobile, handleFramePointerUp],
+  )
 
   const onCardPointerDownCapture = useCallback(() => {
     dragRef.current.didDrag = false
@@ -1499,8 +1549,8 @@ export default function PhotographyPinboard({
                       c.card.previewPhoto?.src ?? c.card.photos.find((photo) => photo.src)?.src
                     if (firstSrc) void preloadImage(firstSrc)
                   }}
-                  onPointerUp={(e) => e.stopPropagation()}
-                  onPointerCancel={(e) => e.stopPropagation()}
+                  onPointerUp={onCardPointerUp}
+                  onPointerCancel={onCardPointerUp}
                   onClick={(e) => {
                     e.stopPropagation()
                     if (!dragRef.current.didDrag) openSlideshow(c, r)

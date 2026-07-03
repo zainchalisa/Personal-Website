@@ -134,6 +134,7 @@ export const MUSIC_ENTRIES: MusicEntry[] = [
     album: 'Parachutes',
     note: 'Coldplay is a really nostalgic band for me. I used to listen to them all the time in the car on road trips with my family. This is currently one of my favorite songs by them.',
     tags: ['Coldplay', 'Hopeful', 'Early 2000s'],
+    artworkUrl: ABOUT_MUSIC_IMAGES.dontPanicAlbumCover,
   },
   {
     id: 'coldest-winter',
