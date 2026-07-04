@@ -7,8 +7,8 @@
 }
 
 .carousel {
-  --slide-width: 74%;
-  --slide-gap: 10px;
+  --slide-width: 65%;
+  --slide-gap: 12px;
   --focus-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --focus-duration: 0.48s;
 
@@ -40,8 +40,8 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  opacity: calc(0.62 + var(--focus) * 0.38);
-  transform: scale(calc(0.94 + var(--focus) * 0.06));
+  opacity: calc(0.72 + var(--focus) * 0.28);
+  transform: scale(calc(0.96 + var(--focus) * 0.04));
   transform-origin: center center;
   transition:
     opacity var(--focus-duration) var(--focus-ease),
