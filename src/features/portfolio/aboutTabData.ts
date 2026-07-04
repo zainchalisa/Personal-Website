@@ -126,6 +126,7 @@ export const MUSIC_ENTRIES: MusicEntry[] = [
     album: 'Singles',
     note: "This is one of my favorite songs by Frank. It's really soothing to listen to, and I often find myself playing it while watching a sunset, or on Pier 25 looking up at the One World Trade building.",
     tags: ['Frank Ocean', 'Emotional', 'Short but perfect'],
+    artworkUrl: ABOUT_MUSIC_IMAGES.dearAprilAlbumCover,
   },
   {
     id: 'dont-panic',
@@ -143,6 +144,7 @@ export const MUSIC_ENTRIES: MusicEntry[] = [
     album: '808s & Heartbreak',
     note: 'One of my favorite songs, produced by Kanye.',
     tags: ['Kanye', '808s', 'Grief', 'Underrated'],
+    artworkUrl: ABOUT_MUSIC_IMAGES.coldestWinterAlbumCover,
   },
   {
     id: 'all-i-need',
@@ -151,6 +153,7 @@ export const MUSIC_ENTRIES: MusicEntry[] = [
     album: 'In Rainbows',
     note: "I have to come clean, I'm a TikTok Radiohead fan. I found this song through a bunch of sad boy edits on TikTok and got hooked. So whenever I go through a sad time, or a really happy time after I've worked hard for something and achieved it, this is the first song I throw on.",
     tags: ['Radiohead', 'In rainbows', 'Ceiling starer'],
+    artworkUrl: ABOUT_MUSIC_IMAGES.allINeedAlbumCover,
   },
 ]
 

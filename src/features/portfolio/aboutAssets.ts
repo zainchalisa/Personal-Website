@@ -2,7 +2,10 @@ import { assetUrl } from '@/shared/lib/assetUrl'
 
 export const ABOUT_MUSIC_IMAGES = {
   overdueAlbumCover: assetUrl('/music/overdue-album-cover.png'),
+  dearAprilAlbumCover: assetUrl('/music/dear-april-album-cover.jpg'),
   dontPanicAlbumCover: assetUrl('/music/dont-panic-album-cover.jpg'),
+  coldestWinterAlbumCover: assetUrl('/music/coldest-winter-album-cover.jpg'),
+  allINeedAlbumCover: assetUrl('/music/all-i-need-album-cover.jpg'),
 } as const
 
 export const ABOUT_MOVIE_IMAGES = {
