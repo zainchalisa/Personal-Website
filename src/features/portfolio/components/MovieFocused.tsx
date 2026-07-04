@@ -22,7 +22,10 @@ export function MovieFocused({ movie, onBack }: MovieFocusedProps) {
         </div>
         <div className={focusedStyles.focusedContent}>
           <button type="button" className={focusedStyles.backButton} onClick={onBack}>
-            ← All Movies
+            <span className={focusedStyles.backButtonArrow} aria-hidden="true">
+              ←
+            </span>
+            All Movies
           </button>
           <h2 className={focusedStyles.focusedTitle}>{movie.title}</h2>
           <p className={focusedStyles.focusedMeta}>

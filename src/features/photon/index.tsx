@@ -90,7 +90,7 @@ export default function PhotonPage() {
             <div className={styles.comingSoon}>
               <span className={styles.comingSoonDot} aria-hidden="true" />
               <span className={styles.comingSoonLabel}>Coming soon</span>
-              <span className={styles.comingSoonDate}>June 2026</span>
+              <span className={styles.comingSoonDate}>July 2026</span>
             </div>
           )}
           <p className={styles.disclaimer}>

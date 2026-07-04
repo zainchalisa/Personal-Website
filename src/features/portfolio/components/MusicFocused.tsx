@@ -29,7 +29,10 @@ export function MusicFocused({ song, onBack }: MusicFocusedProps) {
         </div>
         <div className={focusedStyles.focusedContent}>
           <button type="button" className={focusedStyles.backButton} onClick={onBack}>
-            ← All Songs
+            <span className={focusedStyles.backButtonArrow} aria-hidden="true">
+              ←
+            </span>
+            All Songs
           </button>
           <h2 className={focusedStyles.focusedTitle}>{song.title}</h2>
           <p className={focusedStyles.focusedMeta}>

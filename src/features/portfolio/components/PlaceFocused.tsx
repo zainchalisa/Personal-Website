@@ -22,7 +22,10 @@ export function PlaceFocused({ place, onBack }: PlaceFocusedProps) {
         </div>
         <div className={focusedStyles.focusedContent}>
           <button type="button" className={focusedStyles.backButton} onClick={onBack}>
-            ← All Places
+            <span className={focusedStyles.backButtonArrow} aria-hidden="true">
+              ←
+            </span>
+            All Places
           </button>
           <h2 className={focusedStyles.focusedTitle}>{place.name}</h2>
           <p className={focusedStyles.focusedMeta}>{place.city}</p>

@@ -87,21 +87,59 @@
 
 .backButton {
   align-self: flex-start;
-  margin: 0 0 12px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--about-text-subtle);
-  font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  background: var(--about-pill-bg);
+  color: var(--about-pill-text);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  transition: color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.backButtonArrow {
+  display: inline-block;
+  transition: transform 0.15s ease;
 }
 
 .backButton:hover {
-  color: var(--about-text-muted);
+  color: var(--pt-text-hover);
+  background: var(--pt-surface-hover);
+  border-color: var(--pt-clip-border-hover);
+}
+
+:global([data-portfolio-theme='dark']) .backButton:hover {
+  background: #2e2e2e;
+}
+
+.backButton:hover .backButtonArrow {
+  transform: translateX(-2px);
+}
+
+.backButton:focus-visible {
+  outline: 2px solid var(--about-focus-ring);
+  outline-offset: 2px;
+}
+
+:global([data-portfolio-theme='light']) .backButton {
+  border-color: var(--pt-border-muted);
+}
+
+:global([data-portfolio-theme='light']) .backButton:hover {
+  background: var(--pt-border-subtle);
 }
 
 .focusedTitle {
