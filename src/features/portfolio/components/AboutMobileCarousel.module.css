@@ -7,6 +7,7 @@
 }
 
 .carousel {
+  --slide-width: 74%;
   --slide-gap: 10px;
   --focus-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --focus-duration: 0.48s;
@@ -30,7 +31,7 @@
 .slide {
   --focus: 0;
 
-  flex: 0 0 80%;
+  flex: 0 0 var(--slide-width);
   min-width: 0;
   height: 100%;
   scroll-snap-align: center;
@@ -39,8 +40,8 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  opacity: calc(0.55 + var(--focus) * 0.45);
-  transform: scale(calc(0.92 + var(--focus) * 0.08));
+  opacity: calc(0.62 + var(--focus) * 0.38);
+  transform: scale(calc(0.94 + var(--focus) * 0.06));
   transform-origin: center center;
   transition:
     opacity var(--focus-duration) var(--focus-ease),
@@ -88,23 +89,23 @@
 }
 
 .mediaFramePortrait {
-  height: min(30dvh, 210px);
-  width: auto;
-  max-width: min(52vw, 168px);
+  width: min(88%, 220px);
+  height: auto;
+  max-height: min(34dvh, 240px);
   aspect-ratio: 2 / 3;
 }
 
 .mediaFrameSquare {
-  height: min(28dvh, 190px);
-  width: auto;
-  max-width: min(52vw, 168px);
+  width: min(88%, 220px);
+  height: auto;
+  max-height: min(32dvh, 220px);
   aspect-ratio: 1 / 1;
 }
 
 .mediaFrameLandscape {
-  height: min(24dvh, 170px);
-  width: auto;
-  max-width: min(78vw, 280px);
+  width: min(88%, 280px);
+  height: auto;
+  max-height: min(24dvh, 170px);
   aspect-ratio: 4 / 3;
 }
 
@@ -201,14 +202,14 @@
 }
 
 .skeletonSlide {
-  flex: 0 0 80%;
+  flex: 0 0 var(--slide-width);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .skeletonBlock {
-  width: min(52vw, 168px);
+  width: min(88%, 220px);
   aspect-ratio: 1 / 1;
   border-radius: 8px;
   background: linear-gradient(

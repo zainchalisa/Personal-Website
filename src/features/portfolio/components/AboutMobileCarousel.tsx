@@ -129,7 +129,7 @@ function updateSlideProximity(
   if (!metrics || metrics.stride <= 0 || slides.length === 0) return
 
   const center = el.scrollLeft + el.clientWidth / 2
-  const falloff = metrics.stride * 1.2
+  const falloff = metrics.stride * 1.35
   const blend = options.blend ?? (options.dragging ? 0.38 : 0.22)
 
   slides.forEach((slide) => {
