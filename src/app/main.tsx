@@ -6,7 +6,6 @@ import '@fontsource/geist-sans/500.css'
 import '@fontsource/geist-sans/600.css'
 import '@/styles/index.css'
 import App from './App'
-import { ThemeProvider } from '@/shared/hooks/useTheme'
 
 const PhotonPage = lazy(() => import('@/features/photon'))
 
@@ -25,9 +24,7 @@ createRoot(document.getElementById('root')!).render(
         <PhotonPage />
       </Suspense>
     ) : (
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <App />
     )}
   </StrictMode>,
 )

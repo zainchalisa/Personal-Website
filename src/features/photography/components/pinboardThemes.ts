@@ -1,4 +1,4 @@
-import type { Theme } from '@/shared/hooks/useTheme'
+import type { Theme } from '@/shared/hooks/themeTransition'
 
 /** Radial viewport light (from references/pinboard_lighting.html). */
 type PinboardLightConfig = {

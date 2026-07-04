@@ -3,6 +3,8 @@ import { readSystemPortfolioTheme, type PortfolioTheme } from './portfolioTheme'
 import { patchPortfolioSession, readPortfolioSession } from './portfolioSessionState'
 import './portfolio-theme.css'
 
+const LEGACY_THEME_STORAGE_KEY = 'theme'
+
 function applyPortfolioTheme(next: PortfolioTheme) {
   document.documentElement.dataset.theme = next
   document.documentElement.style.colorScheme = next
@@ -20,10 +22,15 @@ function applyPortfolioTheme(next: PortfolioTheme) {
   meta.setAttribute('content', themeColor)
 }
 
+function resolveInitialPortfolioTheme(): PortfolioTheme {
+  const saved = readPortfolioSession()?.theme
+  if (saved === 'light' || saved === 'dark') return saved
+  return readSystemPortfolioTheme()
+}
+
 export function usePortfolioTheme() {
   const [theme, setThemeState] = useState<PortfolioTheme>(() => {
-    const saved = readPortfolioSession()?.theme
-    const initial = saved ?? readSystemPortfolioTheme()
+    const initial = resolveInitialPortfolioTheme()
     applyPortfolioTheme(initial)
     return initial
   })
@@ -48,12 +55,22 @@ export function usePortfolioTheme() {
 
   const syncSystemTheme = useCallback(() => {
     if (readPortfolioSession()?.theme) return
-    setThemeState(readSystemPortfolioTheme())
+    const next = readSystemPortfolioTheme()
+    setThemeState(next)
+    applyPortfolioTheme(next)
   }, [])
 
   useLayoutEffect(() => {
     applyPortfolioTheme(theme)
   }, [theme])
+
+  useEffect(() => {
+    try {
+      localStorage.removeItem(LEGACY_THEME_STORAGE_KEY)
+    } catch {
+      /* private mode */
+    }
+  }, [])
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)')

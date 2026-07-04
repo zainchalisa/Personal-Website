@@ -8,7 +8,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
-import type { Theme } from '@/shared/hooks/useTheme'
+import type { Theme } from '@/shared/hooks/themeTransition'
 import type { BoardRegionId, BoardRegionLayout } from '@/features/photography/components/pinboardData'
 import { regionVisitedBarPercent } from '@/features/photography/components/regionCountryTotals'
 import styles from './PhotographyMobile.module.css'

@@ -7,8 +7,7 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
-import { useTheme } from '@/shared/hooks/useTheme'
-import type { Theme } from '@/shared/hooks/useTheme'
+import type { Theme, ThemeTransition } from '@/shared/hooks/themeTransition'
 import { getPhotographyLightBoost } from '@/shared/hooks/themeTransition'
 import {
   buildBoardRegions,
@@ -262,18 +261,13 @@ export default function PhotographyPinboard({
   onReadyChange,
 }: PhotographyPinboardProps) {
   const isMobile = variant === 'mobile'
-  const { themeTransition } = useTheme()
-  const themeTransitionRef = useRef(themeTransition)
+  const themeTransitionRef = useRef<ThemeTransition | null>(null)
   const regions = useMemo(
     () => buildBoardRegions(isMobile ? { mobile: true } : undefined),
     [isMobile],
   )
   const th = PINBOARD_THEMES[theme]
   const boardBase = isMobile ? MOBILE_BOARD_BASE[theme] : th.boardBase
-
-  useEffect(() => {
-    themeTransitionRef.current = themeTransition
-  }, [themeTransition])
 
   const frameRef = useRef<HTMLDivElement>(null)
   const worldRef = useRef<HTMLDivElement>(null)

@@ -1,4 +1,4 @@
-import type { Theme } from '@/shared/hooks/useTheme'
+import type { Theme } from '@/shared/hooks/themeTransition'
 import type { PinboardThemeTokens } from './pinboardThemes'
 
 export const BOARD_W = 2600
