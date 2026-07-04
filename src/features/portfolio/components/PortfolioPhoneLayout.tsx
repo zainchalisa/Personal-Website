@@ -361,8 +361,6 @@ export function PortfolioPhoneLayout({
               <IosAppPush
                 title={hostApp === 'about' ? '' : IOS_APP_TITLES[hostApp]}
                 hideNav={hostApp === 'about' || hostApp === 'photography' || hostApp === 'projects'}
-                theme={theme}
-                onThemeChange={onThemeChange}
                 onClose={requestClose}
                 closeDisabled={closeLocked}
               >

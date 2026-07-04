@@ -163,11 +163,17 @@ export function PortfolioPage() {
     return (['about', 'projects', 'photography'] as const).find((id) => openWindows[id]) ?? null
   }, [isPhone, openWindows])
 
-  const aboutMobileContent = useMemo(() => <AboutMobileApp theme={theme} />, [theme])
-  const projectsMobileContent = useMemo(() => <ProjectsMobileApp theme={theme} />, [theme])
+  const aboutMobileContent = useMemo(
+    () => <AboutMobileApp theme={theme} onThemeChange={setTheme} />,
+    [theme, setTheme],
+  )
+  const projectsMobileContent = useMemo(
+    () => <ProjectsMobileApp theme={theme} onThemeChange={setTheme} />,
+    [theme, setTheme],
+  )
   const photographyMobileContent = useMemo(
-    () => <PhotographyMobileApp theme={theme} />,
-    [theme],
+    () => <PhotographyMobileApp theme={theme} onThemeChange={setTheme} />,
+    [theme, setTheme],
   )
 
   const getZIndex = useCallback(

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { IconMoon, IconSun } from '@tabler/icons-react'
+import type { PortfolioTheme } from '../portfolioTheme'
 import styles from './TerminalTitleBar.module.css'
 
 const PATH_CROSSFADE_MS = 150
@@ -11,6 +13,8 @@ type TerminalTitleBarProps = {
   onBackToList?: () => void
   closeLocked?: boolean
   redDotLabel?: string
+  theme?: PortfolioTheme
+  onThemeChange?: (theme: PortfolioTheme) => void
 }
 
 export function TerminalTitleBar({
@@ -20,6 +24,8 @@ export function TerminalTitleBar({
   onBackToList,
   closeLocked = false,
   redDotLabel = 'Back to home',
+  theme,
+  onThemeChange,
 }: TerminalTitleBarProps) {
   const [displayPath, setDisplayPath] = useState(path)
   const [pathVisible, setPathVisible] = useState(true)
@@ -81,9 +87,20 @@ export function TerminalTitleBar({
         )}
       </div>
 
-      <span className={styles.user} aria-hidden>
-        zain@portfolio
-      </span>
+      {theme && onThemeChange ? (
+        <button
+          type="button"
+          className={styles.themeBtn}
+          onClick={() => onThemeChange(theme === 'dark' ? 'light' : 'dark')}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'light' ? <IconSun aria-hidden /> : <IconMoon aria-hidden />}
+        </button>
+      ) : (
+        <span className={styles.user} aria-hidden>
+          zain@portfolio
+        </span>
+      )}
     </header>
   )
 }

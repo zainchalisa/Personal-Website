@@ -6,15 +6,11 @@ import { IosStatusIndicators } from './IosStatusIndicators'
 type IosStatusBarProps = {
   theme: PortfolioTheme
   onThemeChange: (theme: PortfolioTheme) => void
-  variant?: 'home' | 'app'
 }
 
-export function IosStatusBar({ theme, onThemeChange, variant = 'home' }: IosStatusBarProps) {
+export function IosStatusBar({ theme, onThemeChange }: IosStatusBarProps) {
   return (
-    <header
-      className={`${iosStyles.statusBar}${variant === 'app' ? ` ${iosStyles.statusBarApp}` : ''}`}
-      aria-label="Status bar"
-    >
+    <header className={iosStyles.statusBar} aria-label="Status bar">
       <div className={iosStyles.statusRight}>
         <button
           type="button"

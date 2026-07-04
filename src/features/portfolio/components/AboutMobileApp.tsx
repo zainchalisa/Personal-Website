@@ -18,11 +18,12 @@ import styles from './AboutMobileApp.module.css'
 
 type AboutMobileAppProps = {
   theme: PortfolioTheme
+  onThemeChange: (theme: PortfolioTheme) => void
 }
 
 const CONTENT_NAV_VIEWS = new Set<AboutView>(['movies', 'music', 'places'])
 
-export function AboutMobileApp({ theme }: AboutMobileAppProps) {
+export function AboutMobileApp({ theme, onThemeChange }: AboutMobileAppProps) {
   const { requestClose, closeLocked } = useIosAppShell()
   const { movies, music, places } = useContentData()
   const savedAbout = readPortfolioSession()?.about
@@ -134,6 +135,8 @@ export function AboutMobileApp({ theme }: AboutMobileAppProps) {
         path="~/about"
         onRedClick={requestClose}
         closeLocked={closeLocked}
+        theme={theme}
+        onThemeChange={onThemeChange}
       />
 
       <section

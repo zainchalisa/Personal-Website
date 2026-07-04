@@ -9,9 +9,10 @@ import styles from './PhotographyMobile.module.css'
 
 type PhotographyMobileAppProps = {
   theme: PortfolioTheme
+  onThemeChange: (theme: PortfolioTheme) => void
 }
 
-export function PhotographyMobileApp({ theme }: PhotographyMobileAppProps) {
+export function PhotographyMobileApp({ theme, onThemeChange }: PhotographyMobileAppProps) {
   const { requestClose, closeLocked } = useIosAppShell()
 
   useEffect(() => {
@@ -32,6 +33,8 @@ export function PhotographyMobileApp({ theme }: PhotographyMobileAppProps) {
         path="~/photography"
         onRedClick={requestClose}
         closeLocked={closeLocked}
+        theme={theme}
+        onThemeChange={onThemeChange}
       />
 
       <div className={styles.photoStage}>

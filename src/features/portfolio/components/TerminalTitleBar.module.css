@@ -17,8 +17,9 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-  height: 38px;
-  padding: 0 12px;
+  min-height: 38px;
+  height: calc(38px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 12px 0;
   box-sizing: border-box;
   background: var(--term-titlebar-bg);
   border-bottom: 1px solid var(--term-titlebar-border);
@@ -172,10 +173,48 @@
   transition: color 300ms ease;
 }
 
+.themeBtn {
+  grid-column: 3;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--term-close-border);
+  border-radius: 50%;
+  background: var(--term-close-bg);
+  color: var(--term-close-fg);
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    background-color 150ms ease,
+    border-color 300ms ease,
+    color 300ms ease;
+}
+
+.themeBtn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.themeBtn:active {
+  background: var(--term-close-hover-bg);
+}
+
+.themeBtn:focus-visible {
+  outline: 1px solid var(--term-titlebar-path);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .titleBar,
   .path,
   .user,
+  .themeBtn,
   .closeBtn {
     transition-duration: 0.01ms !important;
   }

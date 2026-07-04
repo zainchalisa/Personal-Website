@@ -1,13 +1,9 @@
 import { useEffect, type ReactNode } from 'react'
 import { IconChevronLeft } from '@tabler/icons-react'
-import type { PortfolioTheme } from '../portfolioTheme'
 import iosStyles from '../IosLayout.module.css'
-import { IosStatusBar } from './IosStatusBar'
 
 type IosAppPushProps = {
   title: string
-  theme: PortfolioTheme
-  onThemeChange: (theme: PortfolioTheme) => void
   onClose: () => void
   closeDisabled?: boolean
   hideNav?: boolean
@@ -16,8 +12,6 @@ type IosAppPushProps = {
 
 export function IosAppPush({
   title,
-  theme,
-  onThemeChange,
   onClose,
   closeDisabled = false,
   hideNav = false,
@@ -33,7 +27,6 @@ export function IosAppPush({
 
   return (
     <div className={iosStyles.appPush} role="dialog" aria-label={title || 'App'}>
-      <IosStatusBar theme={theme} onThemeChange={onThemeChange} variant="app" />
       {!hideNav && (
         <header className={iosStyles.appPushNav}>
           <button

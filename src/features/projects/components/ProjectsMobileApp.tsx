@@ -15,9 +15,10 @@ const EDGE_SWIPE_THRESHOLD_PX = 72
 
 type ProjectsMobileAppProps = {
   theme: PortfolioTheme
+  onThemeChange: (theme: PortfolioTheme) => void
 }
 
-export function ProjectsMobileApp({ theme }: ProjectsMobileAppProps) {
+export function ProjectsMobileApp({ theme, onThemeChange }: ProjectsMobileAppProps) {
   const { requestClose, closeLocked } = useIosAppShell()
   const savedSlug = readPortfolioSession()?.projects?.selectedProjectSlug
   const [selectedProject, setSelectedProject] = useState<TerminalProject | null>(() => {
@@ -89,6 +90,8 @@ export function ProjectsMobileApp({ theme }: ProjectsMobileAppProps) {
         onRedClick={handleRedClick}
         onBackToList={selectedProject ? handleBackToList : undefined}
         closeLocked={closeLocked}
+        theme={theme}
+        onThemeChange={onThemeChange}
       />
       <div className={styles.body}>
         <TerminalProjects
