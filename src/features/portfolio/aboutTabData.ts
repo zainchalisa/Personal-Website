@@ -89,7 +89,7 @@ export const MOVIE_ENTRIES: MovieEntry[] = [
     noteLead: 'Watched most recently.',
     noteRest: 'Showed Oscar as a loving son and father — a breath of fresh air when media dehumanized African Americans.',
     mobileNote:
-      'Watched this most recently, and it got me emotional. Media at the time dehumanized African Americans a lot, and this movie was a breath of fresh air in how it showed Oscar as a loving son and father.',
+      'Watched this most recently, and it got me emotional. Media at the time dehumanized African Americans a lot, and this movie was a breath of fresh air in how it showed the main character, Oscar as a loving son and father.',
     tags: ['Based on true story', 'Ryan Coogler', 'Important', 'Drama'],
     posterUrl: ABOUT_MOVIE_IMAGES.fruitvaleStation,
   },
@@ -115,7 +115,7 @@ export const MUSIC_ENTRIES: MusicEntry[] = [
     title: 'Overdue',
     artist: 'Travis Scott & Metro Boomin',
     album: 'Not All Heroes Wear Capes',
-    note: "Overdue is a song I've been listening to non-stop since my senior year of high school. In everything I try in life, I feel like I'm constantly pushing myself, constantly trying to one-up my last win. Sometimes a lot of what I do feels overdue, and I've been working overtime just to see results rather than doing it for pleasure.",
+    note: "Overdue is a song I've been listening to non-stop since my senior year of high school. In everything I try in life, I feel like I'm constantly pushing myself, constantly trying to one-up my last win. Sometimes a lot of what I achieve feels overdue, and I entrap myself in working overtime just to see results. This song captures that feeling.",
     tags: ['Travis Scott', 'Late night', 'R&B'],
     artworkUrl: ABOUT_MUSIC_IMAGES.overdueAlbumCover,
   },
@@ -176,7 +176,7 @@ export const PLACE_ENTRIES: PlaceEntry[] = [
     name: 'San Candido',
     city: 'Italy',
     year: 2024,
-    note: "My friends and I went on a grad trip after graduating college. The Dolomites was a bucket list spot of mine since I saw it on Instagram. When we got off the train, I couldn't stop saying \"OMG\" and yelling and calling every person I knew. Looking at the Alps for the first time was a surreal experience, and it's definitely one of my favorite places I've traveled to so far.",
+    note: "My friends and I went on a month long trip after graduating college. The Dolomites was a bucket list spot of mine since I saw it on Instagram. When we got off the train, I couldn't stop saying \"OMG\" and yelling and calling every person I knew. Looking at the Alps for the first time was a surreal experience, and it's definitely one of my favorite places I've traveled to so far.",
     imageUrl: ABOUT_PLACE_IMAGES.dolomites,
   },
   {
