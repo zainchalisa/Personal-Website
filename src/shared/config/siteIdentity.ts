@@ -1,10 +1,12 @@
+import { ABOUT_META_DESCRIPTION } from '../../features/portfolio/aboutOverviewCopy'
+
 export const SITE_OWNER_FULL_NAME = 'Zain Chalisa'
 
 /** Page title, link previews (Open Graph), and Add to Home Screen label. */
 export const SITE_PUBLIC_TITLE = SITE_OWNER_FULL_NAME
 
-export const SITE_PUBLIC_DESCRIPTION =
-  'Zain Chalisa. Senior Software Engineer in NYC.'
+/** Search/social description — mirrors the About page overview copy. */
+export const SITE_PUBLIC_DESCRIPTION = ABOUT_META_DESCRIPTION
 
 export const SITE_PUBLIC_URL = 'https://zainchalisa.com/'
 
