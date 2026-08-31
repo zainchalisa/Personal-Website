@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Regenerate src/features/photography/photographyAssetManifest.ts
- * from portfolio-assets/photography (same layout as Cloudflare upload).
+ * Regenerate frontend/src/features/photography/photographyAssetManifest.ts
+ * from assets/photography (same layout as Cloudflare upload).
+ * After updating originals, also run: npm run generate:photography-variants
  *
  * Usage: npm run generate:photography-manifest
  */
@@ -10,10 +11,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const photoRoot = path.resolve(__dirname, '../../portfolio-assets/photography')
+const photoRoot = path.resolve(__dirname, '../assets/photography')
 const outFile = path.resolve(
   __dirname,
-  '../src/features/photography/photographyAssetManifest.ts',
+  '../frontend/src/features/photography/photographyAssetManifest.ts',
 )
 
 if (!fs.existsSync(photoRoot)) {
@@ -23,7 +24,10 @@ if (!fs.existsSync(photoRoot)) {
 
 const folders = fs
   .readdirSync(photoRoot)
-  .filter((name) => fs.statSync(path.join(photoRoot, name)).isDirectory())
+  .filter((name) => {
+    if (name === 'thumbs' || name === 'display') return false
+    return fs.statSync(path.join(photoRoot, name)).isDirectory()
+  })
   .sort()
 
 const manifest = {}
@@ -36,7 +40,7 @@ for (const folder of folders) {
 }
 
 const lines = [
-  '// Auto-generated from portfolio-assets/photography — run: npm run generate:photography-manifest',
+  '// Auto-generated from assets/photography — run: npm run generate:photography-manifest',
   'export const PHOTOGRAPHY_ASSET_MANIFEST = {',
   ...Object.entries(manifest).map(([folder, files]) => {
     const fileLines = files.map((f) => `    ${JSON.stringify(f)},`).join('\n')

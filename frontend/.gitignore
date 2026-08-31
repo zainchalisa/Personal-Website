@@ -7,12 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies and generated build output
+# Dependencies and build output
 node_modules
 dist
 dist-ssr
-frontend/dist
-frontend/node_modules
 *.tsbuildinfo
 
 # Vite / tooling caches
@@ -29,7 +27,6 @@ coverage/
 .env
 .env.*
 !.env.example
-!frontend/.env.example
 *.local
 
 # Cloudflare / Wrangler
@@ -38,15 +35,6 @@ coverage/
 
 # Local ops notes (env, deploy, asset URLs) — not for the public repo
 ASSET_HOSTING.md
-
-# Local media (hosted on Cloudflare; keep on disk, not in git)
-/assets/**
-
-# Local docs (mockups, references, architecture notes) — never part of the public repo
-/docs/**
-
-# Photography variant generator was never in the public repo
-/scripts/generate-photography-variants.mjs
 
 # Credentials (never commit)
 *.pem
