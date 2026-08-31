@@ -184,12 +184,6 @@
   color: #2a2a2a;
 }
 
-.comingSoonDate {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: #4a6b8a;
-}
-
 @keyframes comingSoonPulse {
   0% {
     box-shadow: 0 0 0 0 rgba(74, 107, 138, 0.45);
